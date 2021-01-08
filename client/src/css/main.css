@@ -1,0 +1,337 @@
+body
+{
+    background-color: #334;
+    color: white;
+}
+
+.footer
+{
+    float: right;
+    margin-bottom: 5px;
+    margin-right: 8px;
+    color: #888;
+
+    font-size: 10px;
+}
+
+hr
+{
+    border-color: rgba(255,255,255, 0.1);
+}
+
+fieldset
+{
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+legend
+{
+    margin-left: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    display: inline;
+    width: auto;
+
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255, 255, 255, 0.3);
+
+    font-size: 16px;
+}
+
+/* Buttons */
+
+.btn-group-xs > .btn, .btn-xs {
+    padding: .5rem .4rem;
+    font-size: .875rem;
+    line-height: .5;
+    border-radius: .2rem;
+}
+
+/* Modal */
+
+.modal-content {
+    background: #334;
+}
+
+.modal-content .close {
+    color: white;
+    text-shadow: none;
+}
+
+.modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.modal-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Key color buttons */
+
+
+/* Key colors */
+
+.btn.key-color.red.high
+{
+    background: #fb4541;
+}
+
+.btn.key-color.red.medium
+{
+    background: #cc221f;
+}
+
+.btn.key-color.red.low
+{
+    background: #b30d09;
+}
+
+.btn.key-color.yellow.high
+{
+    background: #fff025;
+    color: #222;
+}
+
+.btn.key-color.yellow.medium
+{
+    background: #ccbf13;
+}
+
+.btn.key-color.yellow.low
+{
+    background: #b3a600;
+}
+
+.btn.key-color.orange.high
+{
+    background: #fa7c2e;
+}
+
+.btn.key-color.orange.medium
+{
+    background: #cc5a13;
+}
+
+.btn.key-color.orange.low
+{
+    background: #b34400;
+}
+
+.btn.key-color.green.high
+{
+    background: #78e62d;
+    color: #222;
+}
+
+.btn.key-color.green.medium
+{
+    background: #59c013;
+}
+
+.btn.key-color.green.low
+{
+    background: #3f9a00;
+}
+
+/* Launchpad */
+
+.launchpad
+{
+    border-radius: 10px;
+    background: #222;
+    display: inline-block;
+    text-align: left;
+
+    padding: 25px;
+}
+
+.lp-row
+{
+    line-height: 0px;
+}
+
+.lp-row:last-child .lp-key
+{
+    margin-bottom: 0px;
+}
+
+.lp-key
+{
+    position: relative;
+    background-color: #eee;
+    border-radius: 5px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+
+    width: 30px;
+    height: 30px;
+
+    display: inline-block;
+}
+
+.lp-key:hover {
+    border: 3px solid rgba(1, 26, 250, 0.5);
+}
+
+.lp-key.active {
+    border: 3px solid #0B3CDE;
+}
+
+.lp-key:first-child
+{
+    margin-left: 0px;
+}
+
+.lp-key.lp-round
+{
+    border-radius: 100%;
+    width: 24px;
+    height: 24px;
+    margin-left: 13px;
+    margin-right: 3px;
+}
+
+.lp-key.lp-round:first-child
+{
+    margin-left: 3px;
+}
+
+/* Key colors */
+
+.lp-key.red
+{
+    background: radial-gradient(#ff8462, #fb4541);
+}
+
+.lp-key.yellow
+{
+    background: radial-gradient(#fff025, #fdc62e);
+}
+
+.lp-key.orange
+{
+    background: radial-gradient(#ffa520, #fa7c2e);
+}
+
+.lp-key.green
+{
+    background: radial-gradient(#9cfb1b, #78e62d);
+}
+
+.lp-key.low::before,
+.lp-key.medium::before
+{
+    content: "";
+    background-color: #eee;
+    border-radius: 5px;
+
+    position: absolute;
+    top: 0px;
+    left: 0px;
+
+    width: 100%;
+    height: 100%;
+
+    display: inline-block;
+}
+
+.lp-key.lp-round.low::before,
+.lp-key.lp-round.medium::before
+{
+    border-radius: 100%;
+}
+
+.lp-key.low::before
+{
+    opacity: 0.5;
+}
+
+.lp-key.medium::before
+{
+    opacity: 0.25;
+}
+
+
+/* Launchpad media queries (for < 768px screens */
+
+@media screen and (max-width: 768px) {
+    .launchpad
+    {    
+        padding: 15px;
+    }
+
+    .lp-key
+    {
+        width:25px;
+        height:25px;
+
+        margin-left: 8px;
+        margin-bottom: 8px;
+    }
+
+    .lp-row:last-child .lp-key
+    {
+        margin-bottom: 0px;
+    }
+
+    .lp-key:first-child
+    {
+        margin-left: 0px;
+    }
+    
+    .lp-key.lp-round
+    {
+        width: 21px;
+        height: 21px;
+        margin-left: 10px;
+        margin-right: 2px;
+    }
+
+    .lp-key.lp-round:first-child
+    {
+        margin-left: 3px;
+    }
+}
+
+/* Launchpad media queries (for > 1600px screens */
+
+@media screen and (min-width: 1600px) {
+    .launchpad
+    {    
+        padding: 30px;
+    }
+
+    .lp-key
+    {
+        width:40px;
+        height:40px;
+
+        margin-left: 15px;
+        margin-bottom: 15px;
+    }
+
+    .lp-row:last-child .lp-key
+    {
+        margin-bottom: 0px;
+    }
+
+    .lp-key:first-child
+    {
+        margin-left: 0px;
+    }
+    
+    .lp-key.lp-round
+    {
+        width: 34px;
+        height: 34px;
+        margin-left: 18px;
+        margin-right: 3px;
+    }
+
+    .lp-key.lp-round:first-child
+    {
+        margin-left: 3px;
+    }
+}
