@@ -25,7 +25,7 @@ class Wipe
         let direction = this.start < this.end ? 1 : -1;
         let positions = range(this.start, this.end + direction, direction);
         var pos = Math.floor(data.index / this.delay);
-        this.setLineLighting(positions[pos], 1);
+        this.setLineLighting(positions[pos]);
         
         data.index++;
 
@@ -37,22 +37,22 @@ class Wipe
         return data.index == (Math.abs(this.end - this.start) + 1) * this.delay;
     }
 
-    setLineLighting(lineIndex, light)
+    setLineLighting(lineIndex)
     {
         for(var i = 0; i < 9; i++) {
             switch(this.direction) {
                 case Wipe.VERTICAL:
-                    this.setLighting(lineIndex, i, light);
+                    this.setLighting(lineIndex, i);
                     break;
                 
                 case Wipe.HORIZONTAL:
-                    this.setLighting(i, lineIndex, light);
+                    this.setLighting(i, lineIndex);
                     break;
             }
         }
     }
 
-    setLighting(x, y, light)
+    setLighting(x, y)
     {
         // Convert between simulated top line (y = 0) and actual top line in launchpadder (y = 8)
         y--;

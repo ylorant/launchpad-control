@@ -49,9 +49,19 @@ class Launchpad extends React.Component
 
     static getDerivedStateFromProps(props, state)
     {
-        return {
+        let out = {
             scene: props.scene
         };
+
+        if(props.scene.id !== state.scene.id) {
+            if(props.onSelectKey) {
+                props.onSelectKey(null);
+            }
+            
+            out.selectedKey = null;
+        }
+
+        return out;
     }
 
     render()
@@ -70,10 +80,11 @@ class Launchpad extends React.Component
 
                 let type = i === 8 || j === 0 ? "round" : "square";
                 let selected = false;
+                let keyY = j === 0 ? 8 : j - 1; // Converting from visual representation to actual position
 
                 if(this.state.selectedKey
                 && this.state.selectedKey.props.x === i 
-                && this.state.selectedKey.props.y === j) {
+                && this.state.selectedKey.props.y === keyY) {
                     selected = true;
                 }
 
@@ -82,7 +93,7 @@ class Launchpad extends React.Component
                 row.push(<Key 
                     key={i} 
                     x={i} 
-                    y={j} 
+                    y={keyY} 
                     type={type}
                     selected={selected}
                     keyObject={key}

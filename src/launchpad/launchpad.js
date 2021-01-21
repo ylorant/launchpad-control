@@ -3,10 +3,8 @@ var midi = require('midi');
 var _ = require('underscore');
 var EventEmitter = require('events');
 
-var launchpadColor = require('./color');
 var launchpadderExtend = require('./launchpadder.extend');
 const BootAnimation = require('./animations/boot-animation');
-const { loggers } = require('winston');
 
 launchpadder = launchpadderExtend(launchpadder);
 
@@ -152,9 +150,7 @@ class LaunchpadControl extends EventEmitter
     light(x, y, color)
     {
         let button = this.pad.getButton(x, y);
-        // if(!button.isLit(color)) {
-            button.light(color);
-        // }
+        button.light(color);
     }
 }
 

@@ -1,4 +1,5 @@
 var express = require('express');
+const Scene = require('../scene-manager/scene');
 var router = express.Router();
 
 class ScenesAPI
@@ -15,6 +16,7 @@ class ScenesAPI
         router.put('/current', this.putCurrentScene.bind(this));
         router.get('/scene/:scene', this.getScene.bind(this));
         router.put('/scene/key', this.putKey.bind(this));
+        router.post('/', this.postScene.bind(this));
         router.get('/scripts', this.getScripts.bind(this));
         router.put('/scripts', this.putScripts.bind(this));
         router.put('/scripts/:script', this.putScript.bind(this));
@@ -32,6 +34,18 @@ class ScenesAPI
     getScene(req, res, next)
     {
         res.json(this.sceneManager.getScene(req.params.scene));
+    }
+
+    postScene(req, res, next)
+    {
+        if(!("id" in req.body && "name" in req.body)) {
+            res.json(false);
+            return;
+        }
+
+        let created = this.sceneManager.createScene(req.body.id, req.body.name);
+
+        res.json(created);
     }
 
     /** GET current loaded scene */
@@ -65,6 +79,8 @@ class ScenesAPI
             res.json(false);
             return;
         }
+
+        console.log(req.body.key);
 
         scene.setKey(req.body.key);
         res.json(true);

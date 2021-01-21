@@ -1,5 +1,6 @@
 import { Button, Modal } from "react-bootstrap";
 import React from "react";
+import { slugify } from "transliteration";
 
 class SceneManager extends React.Component
 {
@@ -11,8 +12,20 @@ class SceneManager extends React.Component
             scenes: [],
             currentScene: "",
             deleteSceneConfirmPopupOpen: false,
-            newScenePopupOpen: false
+            newScenePopupOpen: false,
+            newSceneId: "",
+            newSceneName: ""
         };
+    }
+
+    refreshSceneList()
+    {
+        this.props.api.scenes.get(this.onSceneListReceive.bind(this));
+    }
+
+    generateIDFromName()
+    {
+        return slugify(this.state.newSceneName);
     }
 
     //// EVENTS ////
@@ -24,6 +37,11 @@ class SceneManager extends React.Component
         }
 
         this.setState({scenes: data});
+    }
+
+    onNewSceneReceived(ev)
+    {
+        this.refreshSceneList();
     }
 
     onChangeSceneView(event)
@@ -47,14 +65,25 @@ class SceneManager extends React.Component
 
     onCreateScene(event)
     {
-        this.setState({ newScenePopupOpen: false });
+        let newSceneId = this.state.newSceneId;
+        if(newSceneId.length === 0) {
+            newSceneId = this.generateIDFromName();
+        }
+
+        this.props.api.scenes.post({ id: newSceneId, name: this.state.newSceneName }, () => {});
+        this.setState({ 
+            newScenePopupOpen: false,
+            newSceneId: "",
+            newSceneName: ""
+        });
     }
 
     //// COMPONENT LIFECYCLE METHODS ////
 
     componentDidMount()
     {
-        this.props.api.scenes.get(this.onSceneListReceive.bind(this));
+        this.props.eventListener.on("new-scene", this.onNewSceneReceived.bind(this));
+        this.refreshSceneList();
     }
 
     render()
@@ -142,13 +171,29 @@ class SceneManager extends React.Component
                     show={this.state.newScenePopupOpen}
                     onHide={() => this.setState({ newScenePopupOpen: false })}
                     backdrop="static"
-                    keyboard={false}
+                    keyboard={true}
                     centered>
                     <Modal.Header closeButton>
                         <Modal.Title>New scene</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        
+                        <div className="form-group">
+                            <label>Name:</label>
+                            <input 
+                                className="form-control" 
+                                type="text"
+                                value={this.state.newSceneName}
+                                onChange={(ev) => this.setState({ newSceneName: ev.target.value })} />
+                        </div>
+                        <div className="form-group">
+                            <label>ID:</label>
+                            <input 
+                                className="form-control" 
+                                type="text"
+                                placeholder={this.generateIDFromName()}
+                                value={this.state.newSceneId}
+                                onChange={(ev) => this.setState({ newSceneId: ev.target.value })} />
+                        </div>
                     </Modal.Body>
                     <Modal.Footer>
                         <Button 

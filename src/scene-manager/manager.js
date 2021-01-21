@@ -2,6 +2,8 @@ const Scene = require('./scene');
 const vm = require('vm');
 const Key = require('./key');
 const Color = require('../launchpad/color');
+const Animation = require('../launchpad/animation');
+const Actions = require('../launchpad/action/actions');
 
 class Manager
 {
@@ -24,6 +26,8 @@ class Manager
             // Classes, mainly for constants
             Key: Key,
             Color: Color,
+            Animation: Animation,
+            Actions: Actions,
 
             // Global access vars: launchpad and logger
             pad: this.pad,
@@ -56,14 +60,6 @@ class Manager
         this.changeScene(defaultScene, false);
     }
 
-    executeScript(scriptName)
-    {
-        if(this.scripts[scriptName]) {
-            let script = new vm.Script(this.scripts[scriptName]);
-            script.runInContext(this.context);
-        }
-    }
-
     loadConfig(sceneConfig)
     {
         logger.info("Loading scenes from config...");
@@ -92,6 +88,16 @@ class Manager
         }
     }
 
+    //// SCRIPTS ////
+
+    executeScript(scriptName)
+    {
+        if(this.scripts[scriptName]) {
+            let script = new vm.Script(this.scripts[scriptName]);
+            script.runInContext(this.context);
+        }
+    }
+
     getScripts()
     {
         return this.scripts;
@@ -106,6 +112,8 @@ class Manager
     {
         this.scripts[type] = newScript;
     }
+
+    //// SCENES ////
 
     getScenes()
     {
@@ -143,6 +151,23 @@ class Manager
         }
     }
 
+    createScene(id, name)
+    {
+        if(id in this.scenes) {
+            return false;
+        }
+
+        this.scenes[id] = new Scene(this, this.pad, {id: id, name: name})
+
+        publisher.publish("new-scene", {
+            scene: id
+        });
+
+        return true;
+    }
+
+    //// RENDER ////
+
     render()
     {
         logger.info("Rendering active scene");
@@ -150,6 +175,17 @@ class Manager
 
         this.startUpdates();
     }
+
+    /** 
+     * Updates the scene without re-rendering it completely (for animations and such) and without 
+     * re-sending the render events.
+     */
+    update()
+    {
+        this.scenes[this.currentScene].render(true);
+    }
+
+    //// LIFECYCLE ////
 
     startUpdates()
     {
@@ -164,15 +200,6 @@ class Manager
             clearInterval(this.updateInterval);
             this.updateInterval = null;
         }
-    }
-
-    /** 
-     * Updates the scene without re-rendering it completely (for animations and such) and without 
-     * re-sending the render events.
-     */
-    update()
-    {
-        this.scenes[this.currentScene].render(true);
     }
 
     onPadPress(button)

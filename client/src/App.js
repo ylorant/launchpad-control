@@ -26,6 +26,10 @@ class App extends React.Component
         
         this.api = fermata.json(Config.api.host);
 
+        this.eventListener = new EventListener(Config.listener.hubUrl, Config.listener.topic);
+        this.eventListener.on("render-scene", this.onRenderSceneReceived.bind(this));
+        this.eventListener.on("render-key", this.onRenderKeyReceived.bind(this));
+
         this.state = { 
             currentScene: {},
             currentKey: null,
@@ -107,16 +111,18 @@ class App extends React.Component
 
     componentDidMount()
     {
-        this.eventListener = new EventListener(Config.listener.hubUrl, Config.listener.topic);
-        this.eventListener.on("render-scene", this.onRenderSceneReceived.bind(this));
-        this.eventListener.on("render-key", this.onRenderKeyReceived.bind(this));
-
         // Get the current scene to initialize the live view
         this.api.scenes.current.get(this.onCurrentSceneReceive.bind(this));
     }
 
     render()
     {
+        let keyKey = null;
+        
+        if(this.state.currentKey) {
+            keyKey = this.state.currentKey.x + "-" + this.state.currentKey.y + "-" + this.state.currentScene.id;
+        }
+
         return (
             <div className="app container-fluid mt-4">
                 <div className="row">
@@ -138,6 +144,7 @@ class App extends React.Component
                             <legend>Scene</legend>
                             <SceneManager
                                 api={this.api}
+                                eventListener={this.eventListener}
                                 onSceneViewChange={this.onSceneViewChange.bind(this)}
                             />
                         </fieldset>
@@ -146,6 +153,7 @@ class App extends React.Component
                             <legend>Key</legend>
                             <KeyProperties
                                 api={this.api}
+                                key={keyKey}
                                 sceneId={this.state.currentScene.id}
                                 currentKey={this.state.currentKey}
                             />

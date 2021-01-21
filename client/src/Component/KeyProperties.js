@@ -2,6 +2,8 @@ import React from "react";
 import set from 'set-value';
 import KeyColor from "./KeyColor";
 import CodeEditor from "./CodeEditor";
+import Colors from "../Enum/Colors";
+import _ from "underscore";
 
 class KeyProperties extends React.Component
 {
@@ -52,6 +54,7 @@ class KeyProperties extends React.Component
 
     static getDerivedStateFromProps(props, state)
     {
+        let offCode = _.findKey(Colors.codes, (val) => val === Colors.OFF);
         // Default key object
         let keyObject = {
             x: null,
@@ -60,23 +63,32 @@ class KeyProperties extends React.Component
             action: {
                 type: ""
             },
-            colors: {}
+            colors: {
+                inactive: offCode,
+                active: offCode,
+                pressed: offCode
+            }
         };
 
-        if(props.currentKey === null) { // No key is selected at all
-            keyObject = null;
-        } else if(props.currentKey.props.keyObject) { // The selected key has a key object
-            keyObject = props.currentKey.props.keyObject;
-        } else { // The selected key is empty (no configuration)
-            // Set the empty key object properties we can set from the Launchpad Key object
-            keyObject.x = props.currentKey.props.x;
-            keyObject.y = props.currentKey.props.y;
+        let out = {
+            codeEditorOpen: state.codeEditorOpen
+        };
+
+        if(state.key === null || props.currentKey.props.x !== state.key.x || props.currentKey.props.y !== state.key.y) {
+            if(props.currentKey === null) { // No key is selected at all
+                keyObject = null;
+            } else if(props.currentKey.props.keyObject) { // The selected key has a key object
+                keyObject = props.currentKey.props.keyObject;
+            } else { // The selected key is empty (no configuration)
+                // Set the empty key object properties we can set from the Launchpad Key object
+                keyObject.x = props.currentKey.props.x;
+                keyObject.y = props.currentKey.props.y;
+            }
+
+            out.key = keyObject;
         }
 
-        return {
-            codeEditorOpen: state.codeEditorOpen,
-            key: keyObject
-        };
+        return out;
     }
 
     render()
