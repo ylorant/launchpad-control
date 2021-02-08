@@ -1,13 +1,13 @@
-const { first } = require('underscore');
+const _ = require('underscore');
 var Key = require('./key');
 
 class Scene
 {
-    constructor(manager, pad, sceneData = {})
+    constructor(manager, deviceManager, sceneData = {})
     {
         this.id = "default";
         this.manager = manager;
-        this.pad = pad;
+        this.deviceManager = deviceManager;
         this.name = "Default scene";
         this.keys = [];
 
@@ -22,8 +22,9 @@ class Scene
         }
     }
 
-    pressKey(x, y, render) {
-        let key = this.findKey(x, y);
+    pressKey(device, position, render)
+    {
+        let key = this.findKey(device, position);
 
         if(key) {
             key.pressed = true;
@@ -34,8 +35,9 @@ class Scene
         }
     }
 
-    releaseKey(x, y, render) {
-        let key = this.findKey(x, y);
+    releaseKey(device, position, render)
+    {
+        let key = this.findKey(device, position);
 
         if(key) {
             key.pressed = false;
@@ -45,9 +47,16 @@ class Scene
         }
     }
 
-    findKey(x, y) {
+    findKey(device, position)
+    {
         for(var i in this.keys) {
-            if(this.keys[i].x == x && this.keys[i].y == y) {
+            // Check device ID
+            if(this.keys[i].device != device.id) {
+                continue;
+            }
+
+            // Check the position depending on the 
+            if(_.isEqual(position, this.keys[i].position)) {
                 return this.keys[i];
             }
         }
@@ -55,7 +64,8 @@ class Scene
         return null;
     }
 
-    setKey(key) {
+    setKey(key)
+    {
         if(!(key instanceof Key)) {
             key = new Key(this, key);
         }
@@ -76,7 +86,10 @@ class Scene
     render(update = false)
     {
         if(!update) {
-            this.pad.getPad().allDark();
+            var devices = this.deviceManager.get();
+            for(var i in devices) {
+                devices[i].off();
+            }
         }
 
         for(var i in this.keys) {
@@ -91,7 +104,8 @@ class Scene
         }
     }
 
-    renderKey(key, notify = true) {
+    renderKey(key, notify = true)
+    {
         let newColor = null;
 
         if(key.pressed == true && key.colors[Key.STATUS_PRESSED]) {
@@ -107,7 +121,7 @@ class Scene
             newColor = newColor[index];
         }
 
-        this.pad.light(key.x, key.y, newColor);
+        this.deviceManager.get(key.device).light(key.position, newColor);
 
         if(notify) {
             publisher.publish("render-key", {

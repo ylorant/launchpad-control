@@ -1,5 +1,5 @@
 var express = require('express');
-const Scene = require('../scene-manager/scene');
+const Scene = require('../scenes/scene');
 var router = express.Router();
 
 class ScenesAPI

@@ -1,19 +1,19 @@
 const Scene = require('./scene');
 const vm = require('vm');
 const Key = require('./key');
-const Color = require('../launchpad/color');
-const Animation = require('../launchpad/animation');
-const Actions = require('../launchpad/action/actions');
+const Color = require('../devices/launchpad/color');
+const Animation = require('../devices/launchpad/animation');
+const Actions = require('../devices/launchpad/action/actions');
 
 class Manager
 {
-    constructor(pad)
+    constructor(deviceManager)
     {
-        this.pad = pad;
+        this.deviceManager = deviceManager;
         this.resetProperties();
         
-        this.pad.on('press', this.onPadPress.bind(this));
-        this.pad.on('release', this.onPadRelease.bind(this));
+        this.deviceManager.on('press', this.onDevicePress.bind(this));
+        this.deviceManager.on('release', this.onDeviceRelease.bind(this));
     }
 
     resetProperties()
@@ -68,13 +68,13 @@ class Manager
         if("list" in sceneConfig) {
             for(var i in sceneConfig.list) {
                 logger.info("Scene: " + i);
-                this.scenes[i] = new Scene(this, this.pad, sceneConfig.list[i]);
+                this.scenes[i] = new Scene(this, this.deviceManager, sceneConfig.list[i]);
             }
         }
 
         // If no scene has been defined, create a default, empty scene
         if(Object.keys(this.scenes).length == 0) {
-            this.scenes.default = new Scene(this, this.pad);
+            this.scenes.default = new Scene(this, this.deviceManager);
         }
 
         if("scripts" in sceneConfig) {
@@ -202,19 +202,17 @@ class Manager
         }
     }
 
-    onPadPress(button)
+    onDevicePress(device, position)
     {
-        let currentScene = this.currentScene;
-
         for(var i in this.scenes) {
-            this.scenes[i].pressKey(button.getX(), button.getY(), currentScene == i);
+            this.scenes[i].pressKey(device, position, this.currentScene == i);
         }
     }
 
-    onPadRelease(button)
+    onDeviceRelease(device, position)
     {
         for(var i in this.scenes) {
-            this.scenes[i].releaseKey(button.getX(), button.getY(), this.currentScene == i);
+            this.scenes[i].releaseKey(device, position, this.currentScene == i);
         }
     }
 

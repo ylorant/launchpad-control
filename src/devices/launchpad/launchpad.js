@@ -1,97 +1,79 @@
 var launchpadder = require('launchpadder').Launchpad;
-var midi = require('midi');
 var _ = require('underscore');
-var EventEmitter = require('events');
+var Device = require('../device');
 
 var launchpadderExtend = require('./launchpadder.extend');
 const BootAnimation = require('./animations/boot-animation');
 
 launchpadder = launchpadderExtend(launchpadder);
 
-class LaunchpadControl extends EventEmitter
+class Launchpad extends Device
 {
-    init(options)
+    static getType()
     {
-        let defaultOptions = {
+        return "launchpad";
+    }
+
+    static getName()
+    {
+        return "Novation Launchpad";
+    }
+
+    init(config)
+    {
+        super.init(config);
+
+        let defaultConfig = {
             inputPort: null,
             outputPort: null,
         };
 
-        this.options = _.extend(defaultOptions, options);
-        this.currentAnimation = null;
+        this.config = _.extend(defaultConfig, config);
         this.pad = null;
 
-        // Init MIDI lower-level I/O, to allow discovering devices
-        this.input = new midi.Input();
-        this.output = new midi.Output();
-
         // Open launchpad with options
-        this.openLaunchpad();
+        this.open();
     }
 
-    getDevices()
+    open()
     {
-        let count = 0;
-        let i;
-        let devices = {input: {}, output: {}};
-
-
-        // Count the available input ports.
-        count = this.input.getPortCount();
-
-        for(i = 0; i < count; i++) {
-            devices.input[i] = this.input.getPortName(i);
-        }
-
-        // Count the available output ports.
-        count = this.output.getPortCount();
-
-        for(i = 0; i < count; i++) {
-            devices.output[i] = this.output.getPortName(i);
-        }
-
-        return devices;
-    }
-
-    openLaunchpad()
-    {
-        if(this.options.inputPort == null || this.options.outputPort == null) {
+        if(this.config.inputPort == null || this.config.outputPort == null) {
             logger.info("Input or output port not specified, trying to autodiscover them.");
             var devices = this.getDevices();
 
             // Try to guess the input port if needed
-            if(this.options.inputPort == null) {
+            if(this.config.inputPort == null) {
                 for(var i in devices.input) {
                     if(devices.input[i].match(/Launchpad/)) {
                         logger.info("Guessed input port " + i + ": " + devices.input[i]);
-                        this.options.inputPort = parseInt(i);
+                        this.config.inputPort = parseInt(i);
                         break;
                     }
                 }
             }
 
             // Try to guess the output port if needed
-            if(this.options.outputPort == null) {
+            if(this.config.outputPort == null) {
                 for(var i in devices.output) {
                     if(devices.output[i].match(/Launchpad/)) {
                         logger.info("Guessed output port " + i + ": " + devices.output[i]);
-                        this.options.outputPort = parseInt(i);
+                        this.config.outputPort = parseInt(i);
                         break;
                     }
                 }
             }
 
             // If one port is still missing, we 
-            if(this.options.inputPort == null || this.options.outputPort == null) {
+            if(this.config.inputPort == null || this.config.outputPort == null) {
                 logger.error("Could not discover a Launchpad.");
                 return false;
             }
         }
 
-        logger.info("Connecting to Launchpad on ports " + this.options.inputPort + ":" + this.options.outputPort);
+        logger.info("Connecting to Launchpad on ports " + this.config.inputPort + ":" + this.config.outputPort);
 
         try {
-            this.pad = new launchpadder(this.options.inputPort, this.options.outputPort);
+            this.pad = new launchpadder(this.config.inputPort, this.config.outputPort);
         } catch(e) {
             logger.error("Cannot connect to the Launchpad.");
             return false;
@@ -109,7 +91,7 @@ class LaunchpadControl extends EventEmitter
             }).bind(this));
     }
 
-    closeLaunchpad()
+    close()
     {
         this.off();
 
@@ -124,12 +106,12 @@ class LaunchpadControl extends EventEmitter
 
     onPadPress(button)
     {
-        this.emit('press', button);
+        this.emit('press', this.getButtonPosition(button));
     }
 
     onPadRelease(button)
     {
-        this.emit('release', button);
+        this.emit('release', this.getButtonPosition(button));
     }
 
     isConnected()
@@ -142,16 +124,35 @@ class LaunchpadControl extends EventEmitter
         return this.pad;
     }
 
+    getButtonPosition(button)
+    {
+        return {
+            x: button.getX(),
+            y: button.getY()
+        };
+    }
+
     off()
     {
         this.pad.allDark();
     }
 
-    light(x, y, color)
+    light(position, color)
     {
-        let button = this.pad.getButton(x, y);
+        if(!position.x || !position.y) {
+            return false;
+        }
+
+        let button = this.pad.getButton(position.x, position.y);
+        
+        if(!button) {
+            return false;
+        }
+
         button.light(color);
+
+        return true;
     }
 }
 
-module.exports = LaunchpadControl;
+module.exports = Launchpad;

@@ -1,5 +1,5 @@
 // Express requires
-var createError = require('http-errors'),
+const createError = require('http-errors'),
    express = require('express'),
    path = require('path'),
    cookieParser = require('cookie-parser'),
@@ -7,17 +7,17 @@ var createError = require('http-errors'),
    cors = require("cors");
 
 // API routes requires
-var ScenesAPI = require('./api/scenes');
-var SystemAPI = require('./api/system');
+const ScenesAPI = require('./api/scenes');
+const SystemAPI = require('./api/system');
 
 // Launchpad requires
-var LaunchpadControl = require("./launchpad/launchpad");
-var SceneManager = require("./scene-manager");
+const DeviceManager = require('./devices/manager');
+const SceneManager = require("./scenes");
 
 // Misc requires
-var winston = require('winston');
-var Configuration = require("./configuration");
-var Publisher = require("./publisher");
+const winston = require('winston');
+const Configuration = require("./configuration");
+const Publisher = require("./publisher");
 
 //// LOGGING INIT ////
 
@@ -58,23 +58,29 @@ global.publisher = new Publisher(conf.get("publisher"));
 
 //// LAUNCHPAD INIT ////
 
-logger.info("Initializing Launchpad connection...");
-var launchpad = new LaunchpadControl();
-launchpad.init(conf.get("launchpad"));
+// logger.info("Initializing Launchpad connection...");
+// var launchpad = new LaunchpadControl();
+// launchpad.init(conf.get("launchpad"));
 
-if(!launchpad.isConnected()) {
-    logger.info("Exiting.");
-    process.exit();
-}
+// if(!launchpad.isConnected()) {
+//     logger.info("Exiting.");
+//     process.exit();
+// }
+
+//// DEVICE MANAGER INIT ////
+
+logger.info("Initializing device manager...");
+var dm = new DeviceManager();
+dm.init(conf.get("devices"));
 
 //// SCENE MANAGER INIT ////
 
 logger.info("Initializing scene manager...");
-var sm = new SceneManager(launchpad);
+var sm = new SceneManager(dm);
 sm.init(conf.get("scenes", {}));
 
-// Initial rendering when launchpad is ready
-launchpad.on('ready', sm.render.bind(sm));
+// Initial rendering when devices are ready
+dm.on('ready', sm.render.bind(sm));
 
 //// PROCESS MANAGEMENT ////
 
@@ -93,7 +99,7 @@ if (process.platform === "win32") {
 process.on('SIGINT', function() {
     logger.info("Caught SIGINT, exiting.");
     sm.executeScript('teardown');
-    launchpad.closeLaunchpad();
+    dm.close();
     process.exit();
 });
 

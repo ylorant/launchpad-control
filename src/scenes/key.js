@@ -5,8 +5,8 @@ class Key
 {
     constructor(scene, keyData)
     {
-        this.x = null;
-        this.y = null;
+        this.device = null;
+        this.position = null;
         this.scene = scene;
         this.label = null;
         this.defaultStatus = null;
@@ -86,8 +86,8 @@ class Key
         }
 
         return {
-            x: this.x,
-            y: this.y,
+            device: this.device,
+            position: this.position,
             label: this.label,
             status: this.status,
             defaultStatus: this.defaultStatus,
@@ -110,8 +110,8 @@ class Key
         }
 
         let output = {
-            x: this.x,
-            y: this.y,
+            device: this.device,
+            position: this.position,
             label: this.label,
             colors: this.colors,
             action: actionOut
