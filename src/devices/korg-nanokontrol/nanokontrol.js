@@ -42,7 +42,9 @@ class NanoKontrol extends Device
     /** Disconnects from the device. */
     close()
     {
-        this.nanokontrolDevice.close();
+        if(this.isConnected()) {
+            this.nanokontrolDevice.close();
+        }
     }
 
     /** Checks if the device is connected */
