@@ -9,6 +9,7 @@ class Key
         this.position = null;
         this.scene = scene;
         this.label = null;
+        this.value = null;
         this.defaultStatus = null;
         this.status = Key.STATUS_INACTIVE;
         this.pressed = false;

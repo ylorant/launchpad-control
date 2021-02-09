@@ -30,6 +30,7 @@ class DeviceManager extends EventEmitter
                         device.on("ready", this.onDeviceReady.bind(this, device));
                         device.on("press", this.onDevicePress.bind(this, device));
                         device.on("release", this.onDeviceRelease.bind(this, device));
+                        device.on("analog", this.onDeviceAnalog.bind(this, device));
                         device.init(deviceConfig.list[i]);
 
                         this.devices.push(device);
@@ -54,7 +55,7 @@ class DeviceManager extends EventEmitter
         if(deviceId === null) {
             return this.devices;
         }
-        
+
         for(var i in this.devices) {
             if(this.devices[i].id == deviceId) {
                 return this.devices[i];
@@ -83,13 +84,17 @@ class DeviceManager extends EventEmitter
 
     onDevicePress(device, position)
     {
-        console.log("press", device.id, position);
         this.emit("press", device, position);
     }
 
     onDeviceRelease(device, position)
     {
         this.emit("release", device, position);
+    }
+
+    onDeviceAnalog(device, position, value)
+    {
+        this.emit("analog", device, position, value);
     }
 }
 

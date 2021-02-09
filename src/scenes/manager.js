@@ -14,6 +14,7 @@ class Manager
         
         this.deviceManager.on('press', this.onDevicePress.bind(this));
         this.deviceManager.on('release', this.onDeviceRelease.bind(this));
+        this.deviceManager.on('analog', this.onDeviceAnalog.bind(this));
     }
 
     resetProperties()
@@ -213,6 +214,13 @@ class Manager
     {
         for(var i in this.scenes) {
             this.scenes[i].releaseKey(device, position, this.currentScene == i);
+        }
+    }
+
+    onDeviceAnalog(device, position, value)
+    {
+        for(var i in this.scenes) {
+            this.scenes[i].analogKey(device, position, value, this.currentScene == i);
         }
     }
 

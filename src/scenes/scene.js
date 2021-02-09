@@ -47,6 +47,18 @@ class Scene
         }
     }
 
+    analogKey(device, position, value, render)
+    {
+        let key = this.findKey(device, position);
+
+        if(key) {
+            key.value = value;
+            if(render) {
+                key.executeAction();
+            }
+        }
+    }
+
     findKey(device, position)
     {
         for(var i in this.keys) {
