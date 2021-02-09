@@ -2,8 +2,8 @@ const Scene = require('./scene');
 const vm = require('vm');
 const Key = require('./key');
 const Color = require('../devices/launchpad/color');
-const Animation = require('../devices/launchpad/animation');
-const Actions = require('../devices/launchpad/action/actions');
+const Animation = require('../devices/launchpad/animations/animation');
+const Actions = require('../devices/launchpad/animations/action/actions');
 
 class Manager
 {

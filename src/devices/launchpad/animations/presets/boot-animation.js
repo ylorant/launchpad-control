@@ -1,6 +1,6 @@
-const Animation = require('../animation');
+const Animation = require('../');
 const Wipe = require('../action/wipe');
-const Color = require('../color');
+const Color = require('../../color');
 
 let BootAnimation = {
     animation: function(pad) {

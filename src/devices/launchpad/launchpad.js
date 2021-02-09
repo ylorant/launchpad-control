@@ -3,7 +3,7 @@ var _ = require('underscore');
 var Device = require('../device');
 
 var launchpadderExtend = require('./launchpadder.extend');
-const BootAnimation = require('./animations/boot-animation');
+const BootAnimation = require('./animations/presets/boot-animation');
 
 launchpadder = launchpadderExtend(launchpadder);
 
@@ -93,15 +93,18 @@ class Launchpad extends Device
 
     close()
     {
-        this.off();
+        if(this.isConnected()) {
+            this.off();
 
-        this.input.closePort();
-        this.output.closePort();
+            this.input.closePort();
+            this.output.closePort();
 
-        this.pad.removeAllListeners('press');
-        this.pad.removeAllListeners('release');
+            this.pad.removeAllListeners('press');
+            this.pad.removeAllListeners('release');
 
-        delete this.pad;
+            delete this.pad;
+            this.pad = null;
+        }
     }
 
     onPadPress(button)
