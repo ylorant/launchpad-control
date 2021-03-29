@@ -1,5 +1,4 @@
 var express = require('express');
-const Scene = require('../scenes/scene');
 var router = express.Router();
 
 class ScenesAPI
@@ -17,9 +16,6 @@ class ScenesAPI
         router.get('/scene/:scene', this.getScene.bind(this));
         router.put('/scene/key', this.putKey.bind(this));
         router.post('/', this.postScene.bind(this));
-        router.get('/scripts', this.getScripts.bind(this));
-        router.put('/scripts', this.putScripts.bind(this));
-        router.put('/scripts/:script', this.putScript.bind(this));
 
         return router;
     }
@@ -36,6 +32,7 @@ class ScenesAPI
         res.json(this.sceneManager.getScene(req.params.scene));
     }
 
+    /** POST create a scene */
     postScene(req, res, next)
     {
         if(!("id" in req.body && "name" in req.body)) {
@@ -62,7 +59,7 @@ class ScenesAPI
             return;
         }
 
-        this.sceneManager.changeScene(req.body.scene);
+        this.sceneManager.changeScene(req.body.scene); // Reload the scene
         res.json(true);
     }
 
@@ -79,32 +76,8 @@ class ScenesAPI
             res.json(false);
             return;
         }
-
-        console.log(req.body.key);
-
+        
         scene.setKey(req.body.key);
-        res.json(true);
-    }
-
-    getScripts(req, res, next)
-    {
-        res.json(this.sceneManager.getScripts());
-    }
-
-    putScripts(req, res, next)
-    {
-        if(!("setup" in req.body && "teardown" in req.body)) {
-            res.json(false);
-            return;
-        }
-
-        this.sceneManager.setScripts(req.body.scripts);
-        res.json(true);
-    }
-
-    putScript(req, res, next)
-    {
-        this.sceneManager.setScript(req.params.script, req.body.script);
         res.json(true);
     }
 }

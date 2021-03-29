@@ -36,7 +36,8 @@ class NanoKontrol extends Device
     open()
     {
         NanoKONTROLLib.connect()
-            .then(this.onDeviceConnected.bind(this));
+            .then(this.onDeviceConnected.bind(this))
+            .catch(this.onConnectionError.bind(this));
     }
 
     /** Disconnects from the device. */
@@ -96,6 +97,14 @@ class NanoKontrol extends Device
     }
 
     /**
+     * Internal event: Failed to connect to device, we log the error.
+     */
+    onConnectionError(err)
+    {
+        logger.error("Cannot connect to NanoKontrol/2: " + err);
+    }
+
+    /**
      * Calls the bound events for the given element, with the given value.
      * 
      * @param {string} elementName
@@ -124,6 +133,19 @@ class NanoKontrol extends Device
     {
         return {
             element: elementName
+        };
+    }
+
+    /**
+     * Exports the device info
+     */
+    export()
+    {
+        return {
+            id: this.id,
+            type: NanoKontrol.getType(),
+            typeName: NanoKontrol.getName(),
+            config: this.config
         };
     }
 }

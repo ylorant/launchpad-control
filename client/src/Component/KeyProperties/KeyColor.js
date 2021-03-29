@@ -1,7 +1,6 @@
 import React from "react";
 import { Component } from "react";
 import { Button, Modal } from "react-bootstrap";
-import Colors from '../Enum/Colors';
 import { CirclePicker } from "react-color";
 import _ from 'underscore';
 
@@ -22,9 +21,9 @@ class KeyColor extends Component
         let color = this.state.color;
 
         if(animationIndex) {
-            color[animationIndex] = _.findKey(Colors.htmlCodes, (item) => item === ev.hex);
+            color[animationIndex] = _.findKey(this.props.colorsList.htmlCodes, (item) => item === ev.hex);
         } else {
-            color = _.findKey(Colors.htmlCodes, (item) => item === ev.hex);
+            color = _.findKey(this.props.colorsList.htmlCodes, (item) => item === ev.hex);
         }
 
         this.setState({color: color});
@@ -45,7 +44,6 @@ class KeyColor extends Component
 
     onAddAnimationFrame()
     {
-        console.log(this.state.color);
         let color = this.state.color;
         color.push(null);
 
@@ -84,14 +82,14 @@ class KeyColor extends Component
         if(this.state.color instanceof Array) { // Animation
             colorLabel = "Animation";
         } else {
-            colorLabel = this.state.color ? Colors.names[this.state.color] : "Off";
+            colorLabel = this.state.color ? this.props.colorsList.names[this.state.color] : "Off";
         }
 
         // Generation each color's CSS classes
         if(this.state.color instanceof Array) { // Animation, we show color of the first frame
-            colorClasses = this.state.color[0] ? Colors.codes[this.state.color[0]] : Colors.OFF;
+            colorClasses = this.state.color[0] ? this.props.colorsList.codes[this.state.color[0]] : this.props.colorsList.OFF;
         } else { // Static color
-            colorClasses = this.state.color ? Colors.codes[this.state.color] : Colors.OFF;
+            colorClasses = this.state.color ? this.props.colorsList.codes[this.state.color] : this.props.colorsList.OFF;
         }
 
         // Generate animation selectors
@@ -103,15 +101,15 @@ class KeyColor extends Component
                             <CirclePicker
                                 width="550px"
                                 className="mb-1"
-                                color={Colors.htmlCodes[this.state.color[i]]}
-                                colors={Object.keys(Colors.codesToCSSClass)}
+                                color={this.props.colorsList.htmlCodes[this.state.color[i]]}
+                                colors={Object.keys(this.props.colorsList.codesToCSSClass)}
                                 onChange={((j, ev) => this.onColorChange(ev, j)).bind(this, i)} />
                         </div>
 
                         <div className="col-1">
                             <button
                                 onClick={this.onRemoveAnimationFrame.bind(this, i)}
-                                className="btn btn-danger btn-sm">
+                                className="btn btn-outline-danger btn-sm">
                                     &times;
                                 </button>
                         </div>
@@ -122,17 +120,15 @@ class KeyColor extends Component
 
         return (
             <div className="form-group row">
-                <div className="col-4">
-                    <label htmlFor="key-color-inactive" 
-                        className="align-middle mb-0">
+                <div className="col-3">
+                    <label className="align-middle mb-0">
                         {this.props.label}:
                     </label>
                 </div>
 
-                <div className="col-8">
+                <div className="col-9">
                     <button
-                        id="key-color-inactive"
-                        className={"ml-2 btn btn-secondary key-color " + (colorClasses)}
+                        className={"ml-2 btn key-color " + (colorClasses)}
                         onClick={() => this.setState({ popupOpen: true })}>
                         {colorLabel}
                     </button>
@@ -146,7 +142,7 @@ class KeyColor extends Component
                     centered
                     size="lg">
                     <Modal.Header closeButton>
-                        <Modal.Title>Code editor</Modal.Title>
+                        <Modal.Title>Color picker</Modal.Title>
                     </Modal.Header>
                 
                     <Modal.Body>
@@ -168,8 +164,8 @@ class KeyColor extends Component
                             <div className="mb-3 mt-2">
                                 <CirclePicker
                                     width="550px"
-                                    color={Colors.htmlCodes[this.state.color]}
-                                    colors={Object.keys(Colors.codesToCSSClass)}
+                                    color={this.props.colorsList.htmlCodes[this.state.color]}
+                                    colors={Object.keys(this.props.colorsList.codesToCSSClass)}
                                     onChange={(ev) => this.onColorChange(ev)} />
                             </div>
                         }
@@ -179,11 +175,11 @@ class KeyColor extends Component
                                 className="form-check-input" 
                                 type="radio" 
                                 name="color.type" 
-                                id="key-color-type-static"
+                                id="key-color-type-animation"
                                 value="animation"
                                 onChange={this.onColorTypeChange.bind(this)}
                                 checked={this.state.color instanceof Array} />
-                            <label className="form-check-label ml-2" htmlFor="key-color-type-static">
+                            <label className="form-check-label ml-2" htmlFor="key-color-type-animation">
                                 Animation
                             </label>
                         </div>
@@ -202,11 +198,11 @@ class KeyColor extends Component
                     <Modal.Footer>
                         <Button
                             onClick={this.onResetColor.bind(this)}
-                            variant="secondary">
+                            variant="outline-secondary">
                                 Reset
                             </Button>
                         <Button 
-                            variant="primary"
+                            variant="outline-primary"
                             onClick={this.onApplyColor.bind(this)}>
                             Apply
                         </Button>

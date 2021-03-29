@@ -1,7 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
 body
 {
-    background-color: #334;
+    background-color: #202020;
     color: white;
+    font-family: "Share Tech Mono";
 }
 
 .footer
@@ -21,23 +25,45 @@ hr
 
 fieldset
 {
-    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    border: 1px solid rgba(0, 190, 245, 1);
     padding: 15px;
+    padding-top: 15px;
+    margin-top: 2em;
+    margin-bottom: 3em;
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    background-color: #303030;
+}
+
+fieldset:last-of-type
+{
     margin-bottom: 15px;
 }
 
 legend
 {
-    margin-left: 5px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 2px 8px;
     display: inline;
-    width: auto;
+    position: absolute;
+    top: calc(-2em + 2px);
+    left: -1px;
+    box-sizing: content-box;
+    width: calc(100% - 16px);
+    text-align: left;
 
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(10, 200, 255, 0.3);
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    color: rgba(230, 186, 55, 1);
+    text-shadow: 0px 0px 3px rgba(230, 186, 55, 0.6);
 
     font-size: 16px;
+    font-weight: bold;
+}
+
+code
+{
+    font-family: "Share Tech Mono";
 }
 
 /* Buttons */
@@ -52,7 +78,7 @@ legend
 /* Modal */
 
 .modal-content {
-    background: #334;
+    background: #303030;
 }
 
 .modal-content .close {
@@ -68,81 +94,178 @@ legend
     border-top-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Key color buttons */
+/* Standard Input and buttons */
 
+fieldset > .form-group:last-child,
+fieldset > .row:last-child .form-group,
+fieldset .row-container:last-child .row:last-child .form-group
+{
+    margin-bottom: 0px;
+}
+
+.btn-outline-primary
+{
+    border-color: rgba(0, 190, 245, 1);
+    color: rgba(0, 190, 245, 1);
+}
+
+.btn-outline-primary:hover
+{
+    border-color: rgba(0, 190, 245, 1);
+    background-color: rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245, 0.4);
+}
+
+.btn-outline-success
+{
+    border-color: rgba(0, 205, 65, 1);
+    color: rgba(0, 205, 65, 1);
+}
+
+.btn-outline-success:hover
+{
+    border-color: rgba(0, 205, 65, 1);
+    background-color: rgba(0, 205, 65, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 205, 65, 0.4);
+}
+
+.btn-outline-danger:hover
+{
+    box-shadow: 0px 0px 5px 1px rgba(220, 53, 69, 0.4);
+}
+
+.input-group-append .btn-outline-primary,
+.input-group-append .btn-outline-success
+{
+    border-left: 0px;
+}
+
+.form-control
+{
+    background-color: transparent;
+    color: white;
+    border-color: rgba(0, 190, 245, 1);
+
+    /* box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4); */
+}
+
+.form-control:focus
+{
+    background-color: transparent;
+    color: white;
+    border-color: rgba(230, 186, 55, 1);
+
+    box-shadow: 0px 0px 5px 1px rgba(230, 186, 55, 0.4), inset 0px 0px 5px 1px rgba(230, 186, 55, 0.4);
+}
+
+.btn, .form-control
+{
+    border-radius: 0px;
+}
+
+.custom-select {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='white' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")
+}
+
+/* Key color buttons */
 
 /* Key colors */
 
 .btn.key-color.red.high
 {
-    background: #fb4541;
+    border-color: #fb4541;
+    color: #fb4541;
+    background-color: transparent;
 }
 
 .btn.key-color.red.medium
 {
-    background: #cc221f;
+    border-color: #cc221f;
+    color: #cc221f;
+    background-color: transparent;
 }
 
 .btn.key-color.red.low
 {
-    background: #b30d09;
+    border-color: #b30d09;
+    color: #b30d09;
+    background-color: transparent;
 }
 
 .btn.key-color.yellow.high
 {
-    background: #fff025;
-    color: #222;
+    border-color: #fff025;
+    color: #fff025;
+    background-color: transparent;
 }
 
 .btn.key-color.yellow.medium
 {
-    background: #ccbf13;
+    border-color: #ccbf13;
+    color: #ccbf13;
+    background-color: transparent;
 }
 
 .btn.key-color.yellow.low
 {
-    background: #b3a600;
+    border-color: #b3a600;
+    color: #b3a600;
+    background-color: transparent;
 }
 
 .btn.key-color.orange.high
 {
-    background: #fa7c2e;
+    border-color: #fa7c2e;
+    color: #fa7c2e;
+    background-color: transparent;
 }
 
 .btn.key-color.orange.medium
 {
-    background: #cc5a13;
+    border-color: #cc5a13;
+    color: #cc5a13;
+    background-color: transparent;
 }
 
 .btn.key-color.orange.low
 {
-    background: #b34400;
+    border-color: #b34400;
+    color: #b34400;
+    background-color: transparent;
 }
 
 .btn.key-color.green.high
 {
-    background: #78e62d;
-    color: #222;
+    border-color: #78e62d;
+    color: #78e62d;
+    background-color: transparent;
 }
 
 .btn.key-color.green.medium
 {
-    background: #59c013;
+    border-color: #59c013;
+    color: #59c013;
+    background-color: transparent;
 }
 
 .btn.key-color.green.low
 {
-    background: #3f9a00;
+    border-color: #3f9a00;
+    color: #3f9a00;
+    background-color: transparent;
 }
 
 /* Launchpad */
 
 .launchpad
 {
+    font-family: sans-serif;
     border-radius: 10px;
-    background: #222;
+    background: #303030;
     display: inline-block;
     text-align: left;
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 
     padding: 25px;
 }
@@ -172,11 +295,12 @@ legend
 }
 
 .lp-key:hover {
-    border: 3px solid rgba(1, 26, 250, 0.5);
+    border: 3px solid rgba(0, 190, 245, 0.5);
 }
 
 .lp-key.active {
-    border: 3px solid #0b67de;
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }
 
 .lp-key:first-child
@@ -334,4 +458,197 @@ legend
     {
         margin-left: 3px;
     }
+}
+
+/* Korg NanoKontrol */
+
+.nanokontrol
+{
+    font-family: sans-serif;
+    border-radius: 10px;
+    background: #303030;
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    text-align: left;
+
+    padding: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.nk-fader-block
+{
+    border-right: 1px solid #454545;
+}
+
+.nk-fader-block:last-of-type
+{
+    border-right: 0px;
+}
+
+.nk-knob
+{
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #454545;
+    transform: rotate(-120deg);
+    margin-bottom: 12px;
+
+    cursor: pointer;
+}
+
+.nk-knob::before
+{
+    content: "";
+    border-left: 1px solid white;
+    width: 0px;
+    height: 10px;
+    display: block;
+    position: absolute;
+    left: 50%;
+}
+
+.nk-fader-button
+{
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+
+    font-family: "Share Tech Mono";
+    /* font-family: Cabin; */
+    font-weight: 500;
+    text-align: center;
+
+    font-size: 12px;
+    background: #eee;
+    color: #222;
+    border-radius: 3px;
+    line-height: 20px;
+
+    cursor: pointer;
+}
+
+.nk-fader-fader
+{
+    width: 20px;
+    height: 76px;
+    margin: auto;
+    position: relative;
+}
+
+.nk-fader-fader::before
+{
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    top: 0px;
+    width: 0px;
+    height: 100%;
+    border-left: 1px solid #888;
+    border-right: 1px solid #888;
+    border-radius: 2px;
+}
+
+.nk-fader-fader .nk-fader-fader-control
+{
+    position: absolute;
+    left: 6px;
+    bottom: 0px;
+    width: 10px;
+    border-radius: 3px;
+    height: 20px;
+
+    cursor: pointer;
+
+    background-color: #eee;
+}
+
+.nk-fader-button:hover,
+.nk-knob:hover,
+.nk-fader-fader-control:hover
+{
+    border: 3px solid rgba(0, 190, 245, 0.5);
+}
+
+.nk-fader-button:hover
+{
+    line-height: 15px;
+}
+
+.nk-knob:hover:before
+{
+    top:-2px;
+}
+
+.nk-transport .nk-btn
+{
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    font-family: "Share Tech Mono";
+    /* font-family: Cabin; */
+    font-weight: 500;
+
+    background-color: #eee;
+    border-radius: 3px;
+    color: black;
+    text-align: center;
+    line-height: 30px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.nk-transport .nk-btn.nk-half-size
+{
+    height: 15px;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+.nk-transport .nk-btn.nk-half-size i
+{
+    font-size: 12px;
+}
+
+.nk-btn.on
+{
+    background: #fb4541;
+}
+
+.nk-btn:hover {
+    border: 3px solid rgba(0, 190, 245, 0.5);
+}
+
+.nk-btn.active {
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+}
+
+.nk-transport .nk-btn.active,
+.nk-transport .nk-btn:hover {
+    line-height: 24px !important;
+}
+
+.nk-transport .nk-btn.nk-half-size.active,
+.nk-transport .nk-btn.nk-half-size:hover {
+    line-height: 10px !important;
+}
+
+.nk-transport .nk-btn.nk-half-size.active i,
+.nk-transport .nk-btn.nk-half-size:hover i {
+    line-height: 9px !important;
+}
+
+@media screen and (max-width: 768px) {
+
+}
+
+@media screen and (min-width: 1600px) {
+    
 }

@@ -3,6 +3,8 @@ import Key from "./Key";
 
 class Launchpad extends React.Component
 {
+    static TYPE = "launchpad";
+
     constructor(props)
     {
         super(props);
@@ -37,9 +39,9 @@ class Launchpad extends React.Component
 
         for(var i in this.state.scene.keys) {
             let key = this.state.scene.keys[i];
-            let keyY = key.y === 8 ? 0 : key.y + 1;
+            let keyY = key.position.y === 8 ? 0 : key.position.y + 1;
 
-            if(key.x === x && keyY === y) {
+            if(key.device === this.props.device.id && key.position.x === x && keyY === y) {
                 return key;
             }
         }
@@ -50,15 +52,19 @@ class Launchpad extends React.Component
     static getDerivedStateFromProps(props, state)
     {
         let out = {
-            scene: props.scene
+            scene: props.scene,
+            selectedKey: props.selectedKey || null
         };
 
+        // Reset the selected key on scene change
         if(props.scene.id !== state.scene.id) {
             if(props.onSelectKey) {
                 props.onSelectKey(null);
             }
             
             out.selectedKey = null;
+        } else if(props.selectedKey) {
+            out.selectedKey = props.selectedKey;
         }
 
         return out;
@@ -89,9 +95,15 @@ class Launchpad extends React.Component
                 }
 
                 let key = this.getKey(i, j);
+                let keyPosition = {
+                    x: i, 
+                    y: keyY
+                };
 
                 row.push(<Key 
-                    key={i} 
+                    key={i}
+                    device={this.props.device}
+                    position={keyPosition}
                     x={i} 
                     y={keyY} 
                     type={type}

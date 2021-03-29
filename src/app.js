@@ -9,15 +9,18 @@ const createError = require('http-errors'),
 // API routes requires
 const ScenesAPI = require('./api/scenes');
 const SystemAPI = require('./api/system');
+const ScriptsAPI = require('./api/scripts');
+const DevicesAPI = require('./api/devices');
 
 // Launchpad requires
-const DeviceManager = require('./devices/manager');
-const SceneManager = require("./scenes");
+const DeviceManager = require('./devices');
+const SceneManager = require('./scenes');
+const ScriptsManager = require('./scripts');
 
 // Misc requires
 const winston = require('winston');
-const Configuration = require("./configuration");
-const Publisher = require("./publisher");
+const Configuration = require('./configuration');
+const Publisher = require('./publisher');
 
 //// LOGGING INIT ////
 
@@ -67,20 +70,29 @@ global.publisher = new Publisher(conf.get("publisher"));
 //     process.exit();
 // }
 
+//// SCRIPTS MANAGER INIT ////
+
+logger.info("Initializing scripts manager...");
+var scrm = new ScriptsManager();
+scrm.init(conf.get("scripts", {}));
+
 //// DEVICE MANAGER INIT ////
 
 logger.info("Initializing device manager...");
 var dm = new DeviceManager();
-dm.init(conf.get("devices"));
+dm.init(conf.get("devices", {}));
 
 //// SCENE MANAGER INIT ////
 
 logger.info("Initializing scene manager...");
-var sm = new SceneManager(dm);
+var sm = new SceneManager(dm, scrm);
 sm.init(conf.get("scenes", {}));
 
 // Initial rendering when devices are ready
 dm.on('ready', sm.render.bind(sm));
+
+// Add scene manager and device manager to the sandbox
+scrm.updateContext({ sceneManager: sm, deviceManager: dm });
 
 //// PROCESS MANAGEMENT ////
 
@@ -98,7 +110,7 @@ if (process.platform === "win32") {
 
 process.on('SIGINT', function() {
     logger.info("Caught SIGINT, exiting.");
-    sm.executeScript('teardown');
+    scrm.close();
     dm.close();
     process.exit();
 });
@@ -109,8 +121,8 @@ logger.info("Initializing Express...");
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, '..', 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, '..', 'views'));
+// app.set('view engine', 'jade');
 
 app.use(cors());
 app.use(morgan('dev'));
@@ -129,10 +141,14 @@ app.get('/', function (req, res) {
 
 var routes = {
     scenes: new ScenesAPI(sm),
-    system: new SystemAPI(sm, conf)
+    devices: new DevicesAPI(dm),
+    scripts: new ScriptsAPI(scrm),
+    system: new SystemAPI(sm, dm, conf)
 };
 
 app.use('/scenes', routes.scenes.router());
+app.use('/devices', routes.devices.router());
+app.use('/scripts', routes.scripts.router());
 app.use('/system', routes.system.router());
 
 //// AFTER-ROUTING MIDDLEWARE ////
@@ -147,10 +163,17 @@ app.use(function(err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
+    
+    if(req.app.get('env') === 'development') {
+        console.log(err);
+    }
 
     // render the error page
     res.status(err.status || 500);
-    res.render('error');
+    res.json({
+        error: err,
+        message: err.message
+    });
 });
 
 module.exports = app;

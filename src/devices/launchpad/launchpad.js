@@ -1,6 +1,7 @@
 var launchpadder = require('launchpadder').Launchpad;
 var _ = require('underscore');
 var Device = require('../device');
+var Color = require('./color');
 
 var launchpadderExtend = require('./launchpadder.extend');
 const BootAnimation = require('./animations/presets/boot-animation');
@@ -137,12 +138,24 @@ class Launchpad extends Device
 
     off()
     {
+        // Don't do anything if the pad isn't connected
+        if(!this.isConnected()) {
+            return false;
+        }
+
         this.pad.allDark();
+
+        return true;
     }
 
     light(position, color)
     {
         if(!position.x || !position.y) {
+            return false;
+        }
+
+        // Don't do anything if the pad isn't connected
+        if(!this.isConnected()) {
             return false;
         }
 
@@ -152,9 +165,22 @@ class Launchpad extends Device
             return false;
         }
 
-        button.light(color);
+        button.light(color ? color : Color.OFF);
 
         return true;
+    }
+
+    /**
+     * Exports the device info
+     */
+    export()
+    {
+        return {
+            id: this.id,
+            type: Launchpad.getType(),
+            typeName: Launchpad.getName(),
+            config: this.config
+        };
     }
 }
 

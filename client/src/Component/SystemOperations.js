@@ -1,5 +1,6 @@
 import React from "react";
-import CodeEditor from "./CodeEditor";
+import { Button } from "react-bootstrap";
+import ScriptEditor from "./ScriptEditor";
 
 class SystemOperations extends React.Component
 {
@@ -9,37 +10,54 @@ class SystemOperations extends React.Component
 
         this.state = {
             configPath: "",
-            scripts: {
+            hooks: {
                 setup: null,
                 teardown: null
             }
         };
     }
 
-    componentDidMount()
-    {
-        this.props.api.system['config-path'].get(this.onConfigPathReceive.bind(this));
-        this.props.api.scenes.scripts.get(this.onScriptsReceive.bind(this));
-    }
+    //// EVENTS ////
 
     onConfigPathReceive(err, data, handlers)
     {
         this.setState({ configPath: data });
     }
 
-    onScriptsReceive(err, data, handlers)
+    // onScriptChange(type, newScript)
+    // {
+    //     let scripts = this.state.scripts;
+
+    //     scripts[type] = newScript;
+
+    //     this.setState({ scripts: scripts });
+    //     this.props.api.scenes.scripts[type].put({ script: newScript }, () => {});
+    // }
+
+    onSaveScript(name, newScript)
     {
-        this.setState({ scripts: data });
+        this.props.api.scripts.script[name].put({ script: newScript }, () => {});
+
+        if(this.props.onScriptsUpdate) {
+            let scripts = this.props.scripts;
+            scripts[name] = newScript;
+
+            this.props.onScriptsUpdate(scripts);
+        }
     }
 
-    onScriptChange(type, newScript)
+    onHookChange(type, ev)
     {
-        let scripts = this.state.scripts;
+        let newHooks = this.state.hooks;
+        newHooks[type] = ev.target.value;
 
-        scripts[type] = newScript;
+        this.setState({ hooks: newHooks });
+        this.props.api.scripts.hooks[type].put({ script: ev.target.value }, () => {});
+    }
 
-        this.setState({ scripts: scripts });
-        this.props.api.scenes.scripts[type].put({ script: newScript }, () => {});
+    onHooksReceive(err, data, handlers)
+    {
+        this.setState({ hooks: data });
     }
 
     onSaveConfig()
@@ -57,20 +75,69 @@ class SystemOperations extends React.Component
         this.props.api.system.reconnect.post({}, () => {});
     }
 
+    //// COMPONENT LIFECYCLE ////
+
+    componentDidMount()
+    {
+        this.props.api.system['config-path'].get(this.onConfigPathReceive.bind(this));
+        this.props.api.scripts.hooks.get(this.onHooksReceive.bind(this));
+    }
+
+    //// UTILITY METHODS ////
+
+    getScriptNames()
+    {
+        let scriptNames = [];
+
+        for(var i in this.props.scripts) {
+            scriptNames.push(i);
+        }
+
+        return scriptNames;
+    }
+
+    //// RENDER ////
+
     render()
     {
+        let hooksOptions = [];
+        let scriptNames = this.getScriptNames();
+
+        hooksOptions.push(
+            <option
+                key=""
+                value="">
+                    -- None --
+                </option>
+        )
+
+        for(var i in scriptNames) {
+            hooksOptions.push(
+                <option
+                    key={scriptNames[i]}
+                    value={scriptNames[i]}>
+                    {scriptNames[i]}
+                </option>
+            );
+        }
+
         return (
-            <div>
-                <div className="row">
-                    <div className="col-2 form-group">
-                        <button
+            <div className="row-container">
+                <div className="row align-items-end">
+                    <div className="col-6 form-group">
+                        <label>Quick actions:</label><br />
+                        <Button
+                            variant="outline-primary"
                             onClick={this.onReconnect.bind(this)}
-                            className="btn btn-primary mr-3">
+                            className="mr-3">
                             Reconnect
-                        </button>
+                        </Button>
+                        <ScriptEditor
+                            onSave={this.onSaveScript.bind(this)}
+                            scripts={this.props.scripts} />
                     </div>
-                    <div className="col-10 form-inline justify-content-center">
-                        <label className="mr-2">Configuration : </label>
+                    <div className="col-6 form-group">
+                        <label>Configuration: </label>
                         <div className="input-group">
                             <input 
                                 className="form-control" 
@@ -79,16 +146,16 @@ class SystemOperations extends React.Component
                                 value={this.state.configPath}
                                 onChange={(ev) => this.setState({  configPath: ev.target.value  })} />
                             <div className="input-group-append">
-                                <button 
-                                    onClick={this.onLoadConfig.bind(this)}
-                                    className="btn btn-primary">
+                                <Button 
+                                    variant="outline-primary"
+                                    onClick={this.onLoadConfig.bind(this)}>
                                     Load
-                                </button>
-                                <button
-                                    onClick={this.onSaveConfig.bind(this)}
-                                    className="btn btn-success">
+                                </Button>
+                                <Button
+                                    variant="outline-success"
+                                    onClick={this.onSaveConfig.bind(this)}>
                                     Save
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -96,19 +163,23 @@ class SystemOperations extends React.Component
 
                 <div className="row">
                     <div className="col-6 form-group">
-                        <label>Setup script :</label>
-                        <CodeEditor
-                            key={this.state.scripts.setup}
-                            code={this.state.scripts.setup}
-                            onChange={this.onScriptChange.bind(this, "setup")} />
+                        <label>Setup script:</label>
+                        <select
+                            onChange={this.onHookChange.bind(this, "setup")}
+                            value={this.state.hooks.setup || ""}
+                            className="form-control custom-select">
+                            {hooksOptions}
+                        </select>
                     </div>
 
                     <div className="col-6 form-group">
-                        <label>Teardown script :</label>
-                        <CodeEditor
-                            key={this.state.scripts.teardown}
-                            code={this.state.scripts.teardown}
-                            onChange={this.onScriptChange.bind(this, "teardown")} />
+                        <label>Teardown script:</label>
+                        <select
+                            onChange={this.onHookChange.bind(this, "teardown")}
+                            value={this.state.hooks.teardown || ""}
+                            className="form-control custom-select">
+                            {hooksOptions}
+                        </select>
                     </div>
                 </div>
             </div>

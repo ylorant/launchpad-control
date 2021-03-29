@@ -1,4 +1,9 @@
 let ActionList = {
+    setScriptManager: function(scriptManager)
+    {
+        this.scriptManager = scriptManager;
+    },
+
     scene: {
         perform: function(key) {
             key.scene.manager.changeScene(key.action.scene);
@@ -11,11 +16,11 @@ let ActionList = {
         }
     },
 
-    eval: {
+    script: {
         perform: function(key) {
-            key.action.context.key = key;
-            key.action.script.runInContext(key.action.context);
-            delete key.action.context.key;
+            ActionList.scriptManager.updateContext({ key: key });
+            ActionList.scriptManager.executeScript(key.action.script);
+            // delete key.action.context.key;
         }
     }
 };

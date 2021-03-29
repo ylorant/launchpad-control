@@ -1,6 +1,3 @@
-let actionList = require('./action-list');
-let vm = require('vm');
-
 class Key
 {
     constructor(scene, keyData)
@@ -28,20 +25,6 @@ class Key
         if(this.defaultStatus) {
             this.status = this.defaultStatus;
         }
-
-        // We create a VM for the to-be-evaluated code
-        if(this.action.type == "eval")
-        {
-            this.action.script = new vm.Script(this.action.code);
-            this.action.context = this.scene.manager.context;
-            this.action.toJSON = (function()
-            {
-                return {
-                    type: this.action.type,
-                    code: this.action.code
-                };
-            }).bind(this);
-        }
     }
 
     isActive()
@@ -66,11 +49,11 @@ class Key
 
     executeAction()
     {
-        if(!("type" in this.action) || !(this.action.type in actionList)) {
+        if(!("type" in this.action) || !(this.action.type in this.scene.manager.actionList)) {
             return;
         }
 
-        actionList[this.action.type].perform(this);
+        this.scene.manager.actionList[this.action.type].perform(this);
     }
 
     toJSON(key)
@@ -80,11 +63,6 @@ class Key
         }
 
         let actionOut = Object.assign({}, this.action);
-
-        if(actionOut.type == "eval") {
-            delete actionOut.script;
-            delete actionOut.context;
-        }
 
         return {
             device: this.device,

@@ -8,13 +8,18 @@ class DeviceManager extends EventEmitter
     {
         super();
 
+        this.resetProperties();
+    }
+
+    resetProperties()
+    {
         this.devices = [];
-        this.initializedCount = 0;
+        this.initializedCount = 0;   
     }
 
     init(deviceConfig)
     {
-        this.initializedCount = 0;
+        this.resetProperties();
         
         // Load each device
         if("list" in deviceConfig) {
@@ -63,6 +68,13 @@ class DeviceManager extends EventEmitter
         }
 
         return null;
+    }
+
+    open()
+    {
+        for(var i in this.devices) {
+            this.devices[i].open();
+        }
     }
 
     close()

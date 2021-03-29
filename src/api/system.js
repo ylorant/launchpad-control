@@ -4,9 +4,10 @@ var router = express.Router();
 
 class SystemAPI
 {
-    constructor(sceneManager, config)
+    constructor(sceneManager, deviceManager, config)
     {
         this.sceneManager = sceneManager;
+        this.deviceManager = deviceManager;
         this.config = config;
     }
 
@@ -54,8 +55,9 @@ class SystemAPI
     reconnect(req, res, next)
     {
         this.sceneManager.stopUpdates();
-        this.sceneManager.pad.closeLaunchpad();
-        this.sceneManager.pad.openLaunchpad();
+        this.deviceManager.close();
+        this.deviceManager.open();
+        this.sceneManager.startUpdates();
         res.json(true);
     }
 }

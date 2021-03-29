@@ -1,17 +1,17 @@
 const Scene = require('./scene');
-const vm = require('vm');
-const Key = require('./key');
-const Color = require('../devices/launchpad/color');
-const Animation = require('../devices/launchpad/animations/animation');
-const Actions = require('../devices/launchpad/animations/action/actions');
+const actionList = require('./action-list');
 
 class Manager
 {
-    constructor(deviceManager)
+    constructor(deviceManager, scriptsManager)
     {
         this.deviceManager = deviceManager;
+        this.scriptsManager = scriptsManager;
+        this.actionList = actionList;
         this.resetProperties();
-        
+
+        this.actionList.setScriptManager(this.scriptsManager);
+                
         this.deviceManager.on('press', this.onDevicePress.bind(this));
         this.deviceManager.on('release', this.onDeviceRelease.bind(this));
         this.deviceManager.on('analog', this.onDeviceAnalog.bind(this));
@@ -19,38 +19,16 @@ class Manager
 
     resetProperties()
     {
-        let sandbox = {
-            // Global base functions that will be required anyway
-            require: require,
-            manager: this,
-
-            // Classes, mainly for constants
-            Key: Key,
-            Color: Color,
-            Animation: Animation,
-            Actions: Actions,
-
-            // Global access vars: launchpad and logger
-            pad: this.pad,
-            logger: logger
-        };
 
         this.scenes = {};
-        this.context = vm.createContext(sandbox);
         this.currentScene = null;
         this.defaultScene = null;
-        this.scripts = {
-            setup: null,
-            teardown: null
-        };
     }
 
     init(sceneConfig)
     {
-        this.executeScript('teardown');
         this.resetProperties();
         this.loadConfig(sceneConfig);
-        this.executeScript('setup');
 
         // Change to default scene (or the first scene if none is defined)
         let defaultScene = this.defaultScene;
@@ -78,42 +56,12 @@ class Manager
             this.scenes.default = new Scene(this, this.deviceManager);
         }
 
-        if("scripts" in sceneConfig) {
-            this.scripts.setup = "setup" in sceneConfig.scripts ? sceneConfig.scripts.setup : null;
-            this.scripts.teardown = "teardown" in sceneConfig.scripts ? sceneConfig.scripts.teardown : null;
-        }
-
         // Set current scene as the default one
         if("default" in sceneConfig && sceneConfig.default in this.scenes) {
             this.defaultScene = sceneConfig.default;
         }
     }
-
-    //// SCRIPTS ////
-
-    executeScript(scriptName)
-    {
-        if(this.scripts[scriptName]) {
-            let script = new vm.Script(this.scripts[scriptName]);
-            script.runInContext(this.context);
-        }
-    }
-
-    getScripts()
-    {
-        return this.scripts;
-    }
-
-    setScripts(newScripts)
-    {
-        this.scripts = newScripts;
-    }
-
-    setScript(type, newScript)
-    {
-        this.scripts[type] = newScript;
-    }
-
+    
     //// SCENES ////
 
     getScenes()
@@ -206,21 +154,21 @@ class Manager
     onDevicePress(device, position)
     {
         for(var i in this.scenes) {
-            this.scenes[i].pressKey(device, position, this.currentScene == i);
+            this.scenes[i].pressKey(device.id, position, this.currentScene == i);
         }
     }
 
     onDeviceRelease(device, position)
     {
         for(var i in this.scenes) {
-            this.scenes[i].releaseKey(device, position, this.currentScene == i);
+            this.scenes[i].releaseKey(device.id, position, this.currentScene == i);
         }
     }
 
     onDeviceAnalog(device, position, value)
     {
         for(var i in this.scenes) {
-            this.scenes[i].analogKey(device, position, value, this.currentScene == i);
+            this.scenes[i].analogKey(device.id, position, value, this.currentScene == i);
         }
     }
 
@@ -229,7 +177,6 @@ class Manager
      */
     export() {
         let output = {
-            scripts: this.scripts,
             list: {},
             default: this.defaultScene
         };

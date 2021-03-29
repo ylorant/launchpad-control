@@ -3,20 +3,21 @@ import fermata from 'fermata';
 import 'jquery';
 import 'popper.js';
 import 'bootstrap';
+import _ from "underscore";
 
 // Misc imports
 import Config from './config';
 import EventListener from './event-listener';
 
 // Components
-import Launchpad from './Component/Launchpad/Launchpad';
 import SceneManager from './Component/SceneManager';
-import KeyProperties from './Component/KeyProperties';
+import KeyProperties from './Component/KeyProperties/KeyProperties';
 
 // CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/main.css';
 import SystemOperations from './Component/SystemOperations';
+import DeviceManager from './Component/Device/DeviceManager';
 
 class App extends React.Component 
 {
@@ -33,6 +34,7 @@ class App extends React.Component
         this.state = { 
             currentScene: {},
             currentKey: null,
+            scripts: null,
             liveView: true
         };
     }
@@ -51,8 +53,9 @@ class App extends React.Component
         // Find and update the key in the scene data
         for(var i in scene.keys) {
             let key = scene.keys[i];
-            if(key.x === newKey.x && key.y === newKey.y) {
+            if(_.isEqual(key.position, newKey.position)) {
                 scene.keys[i] = newKey;
+                break;
             }
         }
 
@@ -92,6 +95,11 @@ class App extends React.Component
         this.setState({currentScene: data});
     }
 
+    onScriptsReceive(err, data, handlers)
+    {
+        this.setState({ scripts: data });
+    }
+
     onCurrentKeyChanged(key)
     {
         this.setState({
@@ -107,36 +115,47 @@ class App extends React.Component
         this.api.scenes.scene(newScene).get(this.onSceneReceived.bind(this));
     }
 
+    getScriptNames()
+    {
+        let scriptNames = [];
+
+        for(var i in this.state.scripts) {
+            scriptNames.push(i);
+        }
+
+        return scriptNames;
+    }
+
     //// COMPONENT LIFECYCLE METHODS ////
 
     componentDidMount()
     {
         // Get the current scene to initialize the live view
         this.api.scenes.current.get(this.onCurrentSceneReceive.bind(this));
+        this.api.scripts.get(this.onScriptsReceive.bind(this));
     }
+
+    //// RENDER ////
 
     render()
     {
-        let keyKey = null;
-        
-        if(this.state.currentKey) {
-            keyKey = this.state.currentKey.x + "-" + this.state.currentKey.y + "-" + this.state.currentScene.id;
-        }
-
         return (
             <div className="app container-fluid mt-4">
                 <div className="row">
                     <div className="col-md-6  col-xs-12 text-center">
-                        <Launchpad
+                        <DeviceManager
+                            api={this.api}
                             scene={this.state.currentScene}
-                            onSelectKey={this.onCurrentKeyChanged.bind(this)}
-                        />
+                            selectedKey={this.state.currentKey}
+                            onSelectKey={this.onCurrentKeyChanged.bind(this)} />
                     </div>
                     <div className="col-md-6 col-xs-12">
                         <fieldset>
                             <legend>System</legend>
                             <SystemOperations
                                 api={this.api}
+                                scripts={this.state.scripts}
+                                onScriptsUpdate={this.onScriptsReceive.bind(this, null)}
                             />
                         </fieldset>
                         
@@ -153,11 +172,14 @@ class App extends React.Component
                             <legend>Key</legend>
                             <KeyProperties
                                 api={this.api}
-                                key={keyKey}
+                                scripts={this.getScriptNames()}
                                 sceneId={this.state.currentScene.id}
                                 currentKey={this.state.currentKey}
                             />
                         </fieldset>
+                        <div className="footer">
+                            Icons made by <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+                        </div>
                     </div>
                 </div>
                 <div className="row">

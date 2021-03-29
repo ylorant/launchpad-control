@@ -100,7 +100,7 @@ class SceneManager extends React.Component
 
         return (
             <div className="row sceneManager">
-                <div className="col-10 form-group">
+                <div className="col-9 form-group">
                     <div className="input-group">
                         <select 
                             className="form-control custom-select" 
@@ -113,30 +113,28 @@ class SceneManager extends React.Component
                         </select>
 
                         <div className="input-group-append">    
-                            <button 
-                                className="btn btn-primary" 
-                                type="button"
+                            <Button 
+                                variant="btn btn-outline-primary" 
                                 disabled={this.state.currentScene === null}
                                 onClick={this.onChangeSceneButtonClick.bind(this)}>
                                 Change
-                            </button>
-                            <button 
-                                className="btn btn-danger"
-                                type="button"
+                            </Button>
+                            <Button 
+                                variant="btn btn-outline-danger"
                                 disabled={this.state.currentScene === null}
                                 onClick={() => this.setState({ deleteSceneConfirmPopupOpen: true })}>
                                 Delete
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
 
-                <div className="col-2 text-center">
-                    <button 
-                        className="btn btn-success"
+                <div className="col-3 text-center">
+                    <Button 
+                        variant="outline-success"
                         onClick={() => this.setState({ newScenePopupOpen: true})}>
                         New scene
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Delete scene modal */}
@@ -154,12 +152,12 @@ class SceneManager extends React.Component
                     </Modal.Body>
                     <Modal.Footer>
                     <Button 
-                        variant="secondary" 
+                        variant="outline-secondary" 
                         onClick={() => this.setState({ deleteSceneConfirmPopupOpen: false })}>
                         Cancel
                     </Button>
                     <Button 
-                        variant="danger"
+                        variant="outline-danger"
                         onClick={this.onConfirmDeleteScene.bind(this)}>
                         Delete
                     </Button>
@@ -197,12 +195,12 @@ class SceneManager extends React.Component
                     </Modal.Body>
                     <Modal.Footer>
                         <Button 
-                            variant="secondary" 
+                            variant="outline-secondary" 
                             onClick={() => this.setState({ newScenePopupOpen: false })}>
                             Cancel
                         </Button>
                         <Button 
-                            variant="success"
+                            variant="outline-success"
                             onClick={this.onCreateScene.bind(this)}>
                             Create
                         </Button>

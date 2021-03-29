@@ -22,9 +22,9 @@ class Scene
         }
     }
 
-    pressKey(device, position, render)
+    pressKey(deviceId, position, render)
     {
-        let key = this.findKey(device, position);
+        let key = this.findKey(deviceId, position);
 
         if(key) {
             key.pressed = true;
@@ -35,9 +35,9 @@ class Scene
         }
     }
 
-    releaseKey(device, position, render)
+    releaseKey(deviceId, position, render)
     {
-        let key = this.findKey(device, position);
+        let key = this.findKey(deviceId, position);
 
         if(key) {
             key.pressed = false;
@@ -47,9 +47,9 @@ class Scene
         }
     }
 
-    analogKey(device, position, value, render)
+    analogKey(deviceId, position, value, render)
     {
-        let key = this.findKey(device, position);
+        let key = this.findKey(deviceId, position);
 
         if(key) {
             key.value = value;
@@ -59,11 +59,11 @@ class Scene
         }
     }
 
-    findKey(device, position)
+    findKey(deviceId, position)
     {
         for(var i in this.keys) {
             // Check device ID
-            if(this.keys[i].device != device.id) {
+            if(this.keys[i].device != deviceId) {
                 continue;
             }
 
@@ -82,7 +82,7 @@ class Scene
             key = new Key(this, key);
         }
 
-        if(!this.findKey(key.x, key.y)) {
+        if(!this.findKey(key.device, key.position)) {
             this.keys.push(key);
         } else {
             for(var i in this.keys) {

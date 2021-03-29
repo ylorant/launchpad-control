@@ -66,6 +66,9 @@ class Device extends EventEmitter
 
     /** Lights off everything */
     off() {}
+
+    /** Exports the device */
+    export() {}
 }
 
 module.exports = Device;

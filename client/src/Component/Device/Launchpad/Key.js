@@ -1,5 +1,5 @@
 import React from "react";
-import Colors from "../../Enum/Colors";
+import Colors from "./Colors";
 
 class Key extends React.Component
 {
