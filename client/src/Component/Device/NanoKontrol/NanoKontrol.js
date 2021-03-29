@@ -78,6 +78,7 @@ class NanoKontrol extends React.Component
                     device={this.props.device}
                     index={i}
                     key={i}
+                    onClick={this.onSelectKey.bind(this)}
                     selectedKey={this.state.selectedKey}
                     keyObject={faderCurrentKey} />
             );

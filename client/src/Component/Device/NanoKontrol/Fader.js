@@ -23,6 +23,18 @@ class Fader extends React.Component
         return null;
     }
 
+    isKeySelected(position)
+    {
+        return this.props.selectedKey && this.props.selectedKey.props.position.element === position;
+    }
+
+    getPositionObject(position)
+    {
+        return {
+            element: position
+        };
+    }
+
     render()
     {
         return (
@@ -31,6 +43,8 @@ class Fader extends React.Component
                     <div className="col-6 offset-6 text-center">
                         <Knob 
                             device={this.props.device}
+                            position={this.getPositionObject("knob:" + this.props.index)}
+                            selected={this.isKeySelected("knob:" + this.props.index)}
                             keyObject={this.getKey("knob")}
                             onClick={this.onClick.bind(this)} />
                     </div>
@@ -41,7 +55,8 @@ class Fader extends React.Component
                                 <Button
                                     key="s"
                                     device={this.props.device}
-                                    position={"button:s:" + this.props.index}
+                                    position={this.getPositionObject("button:s:" + this.props.index)}
+                                    selected={this.isKeySelected("button:s:" + this.props.index)}
                                     className="nk-fader-button"
                                     keyObject={this.getKey("button:s")}
                                     onClick={this.onClick.bind(this)}>
@@ -50,7 +65,8 @@ class Fader extends React.Component
                                 <Button
                                     key="m"
                                     device={this.props.device}
-                                    position={"button:m:" + this.props.index}
+                                    position={this.getPositionObject("button:m:" + this.props.index)}
+                                    selected={this.isKeySelected("button:m:" + this.props.index)}
                                     className="nk-fader-button"
                                     keyObject={this.getKey("button:m")}
                                     onClick={this.onClick.bind(this)}>
@@ -59,7 +75,8 @@ class Fader extends React.Component
                                 <Button
                                     key="r"
                                     device={this.props.device}
-                                    position={"button:r:" + this.props.index}
+                                    position={this.getPositionObject("button:r:" + this.props.index)}
+                                    selected={this.isKeySelected("button:r:" + this.props.index)}
                                     className="nk-fader-button"
                                     keyObject={this.getKey("button:r")}
                                     onClick={this.onClick.bind(this)}>
@@ -69,6 +86,8 @@ class Fader extends React.Component
                             <div className="col-6">
                                 <Slider
                                     device={this.props.device}
+                                    position={this.getPositionObject("slider:" + this.props.index)}
+                                    selected={this.isKeySelected("slider:" + this.props.index)}
                                     keyObject={this.getKey("slider")}
                                     onClick={this.onClick.bind(this)} />
                             </div>
