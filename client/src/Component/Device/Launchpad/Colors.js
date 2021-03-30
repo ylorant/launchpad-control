@@ -1,6 +1,6 @@
 // Base colors CSS classes constants
 let Colors = {
-    OFF: "",
+    OFF: "btn-outline-secondary",
     RED_LOW: "red low",
     RED_MEDIUM: "red medium",
     RED_HIGH: "red high",

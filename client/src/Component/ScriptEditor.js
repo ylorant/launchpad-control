@@ -16,13 +16,33 @@ class ScriptEditor extends React.Component
             editorOpen: false,
             scripts: {},
             originalScripts: {},
-            shownScript: null
+            shownScript: null,
+            newScriptOpen: false,
+            newScriptName: ""
         };
     }
 
     onShownScriptChange(ev)
     {
         this.setState({ shownScript: ev.target.value });
+    }
+
+    onNewScriptButtonClick(ev)
+    {
+        this.setState({ newScriptOpen: true });
+    }
+
+    onScriptCreateClick(ev)
+    {
+        let scripts = this.state.scripts;
+        scripts[this.state.newScriptName] = "";
+        
+        this.setState({
+            scripts: scripts,
+            newScriptOpen: false,
+            newScriptName: "",
+            shownScript: this.state.newScriptName
+        });
     }
 
     onScriptChange(name, newScript)
@@ -35,11 +55,17 @@ class ScriptEditor extends React.Component
         });
     }
 
+
     onSave(name)
     {
         if(this.props.onSave) {
             this.props.onSave(name, this.state.scripts[name]);
         }
+    }
+
+    onDelete(name)
+    {
+
     }
 
     onClose()
@@ -59,6 +85,7 @@ class ScriptEditor extends React.Component
                     firstScript = i;
                 }
 
+                // Update scripts in the state only if the props differ from the original ones
                 if(state.originalScripts[i] !== props.scripts[i]) {
                     state.originalScripts[i] = props.scripts[i];
                     state.scripts[i] = props.scripts[i];
@@ -73,14 +100,13 @@ class ScriptEditor extends React.Component
         return state;
     }
 
-
     //// UTILITY METHODS ////
 
     getScriptNames()
     {
         let scriptNames = [];
 
-        for(var i in this.props.scripts) {
+        for(var i in this.state.scripts) {
             scriptNames.push(i);
         }
 
@@ -107,7 +133,12 @@ class ScriptEditor extends React.Component
                         <Button 
                             variant="outline-success"
                             onClick={this.onSave.bind(this, i)}>
-                            Save
+                            Save {this.state.originalScripts[i] !== this.state.scripts[i] ? "*" : ""}
+                        </Button>
+                        <Button 
+                            variant="outline-danger ml-2"
+                            onClick={this.onDelete.bind(this, i)}>
+                            Delete
                         </Button>
                     </div>
                     <AceEditor
@@ -154,12 +185,22 @@ class ScriptEditor extends React.Component
                 
                     <Modal.Body>
                         <div className="form-group">
-                            <select 
-                                className="form-control custom-select"
-                                value={this.state.shownScript}
-                                onChange={this.onShownScriptChange.bind(this)}>
-                                {scriptsOptions}
-                            </select>
+                            <div className="input-group">
+                                <select 
+                                    className="form-control custom-select"
+                                    value={this.state.shownScript}
+                                    onChange={this.onShownScriptChange.bind(this)}>
+                                    {scriptsOptions}
+                                </select>
+
+                                <div className="input-group-append">    
+                                    <Button 
+                                        variant="btn btn-outline-primary"
+                                        onClick={this.onNewScriptButtonClick.bind(this)}>
+                                        New script
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                         {tabs}
                     </Modal.Body>
@@ -169,6 +210,36 @@ class ScriptEditor extends React.Component
                             variant="outline-secondary"
                             onClick={this.onClose.bind(this)}>
                             Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
+                <Modal
+                    show={this.state.newScriptOpen}
+                    onHide={() => this.setState({newScriptName: "", newScriptOpen: false})}
+                    backdrop="static"
+                    keyboard={true}
+                    centered
+                    size="lg">
+                    <Modal.Header closeButton>
+                        <Modal.Title>New script</Modal.Title>
+                    </Modal.Header>
+                
+                    <Modal.Body>
+                        <div className="form-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={this.state.newScriptName}
+                                onChange={(ev) => this.setState({newScriptName: ev.target.value})} />
+                        </div>
+                    </Modal.Body>
+                
+                    <Modal.Footer>
+                        <Button 
+                            variant="outline-primary"
+                            onClick={this.onScriptCreateClick.bind(this)}>
+                            Create
                         </Button>
                     </Modal.Footer>
                 </Modal>

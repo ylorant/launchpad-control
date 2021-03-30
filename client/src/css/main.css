@@ -35,6 +35,12 @@ fieldset
     background-color: #303030;
 }
 
+fieldset.unsaved
+{
+    border: 1px solid rgba(230, 186, 55, 1);
+    box-shadow: 0px 0px 5px 1px rgba(230, 186, 55, 0.4), inset 0px 0px 5px 1px rgba(230, 186, 55, 0.4);
+}
+
 fieldset:last-of-type
 {
     margin-bottom: 15px;
@@ -59,6 +65,15 @@ legend
 
     font-size: 16px;
     font-weight: bold;
+}
+
+fieldset.unsaved legend
+{
+    border: 1px solid rgba(230, 186, 55, 1);
+    box-shadow: 0px 0px 5px 1px rgba(230, 186, 55, 0.4), inset 0px 0px 5px 1px rgba(230, 186, 55, 0.4);
+    background-color: rgba(230, 186, 55, 0.3);
+    color: rgba(0, 190, 245, 1);
+    text-shadow: 0px 0px 3px rgba(0, 190, 245, 0.6);
 }
 
 code

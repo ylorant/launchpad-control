@@ -43,6 +43,10 @@ class NanoKontrolKeyProperties extends React.Component
             keyId = "undefined";
         }
 
+        if(!this.props.currentKey.position.element.match(/button:*/)) {
+            return null;
+        }
+
         return (
             <div className="form-group">
                 <label>Colors: </label>
