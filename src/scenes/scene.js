@@ -86,7 +86,13 @@ class Scene
             this.keys.push(key);
         } else {
             for(var i in this.keys) {
-                if(this.keys[i].x == key.x && this.keys[i].y == key.y) {
+                // Check device ID
+                if(this.keys[i].device != key.device) {
+                    continue;
+                }
+
+                // Check the position depending on the 
+                if(_.isEqual(key.position, this.keys[i].position)) {
                     this.keys[i] = key;
                 }
             }

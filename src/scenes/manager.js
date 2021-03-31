@@ -61,6 +61,11 @@ class Manager
             this.defaultScene = sceneConfig.default;
         }
     }
+
+    getActionList()
+    {
+        return this.actionList;
+    }
     
     //// SCENES ////
 

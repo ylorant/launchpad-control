@@ -14,7 +14,8 @@ class KeyProperties extends React.Component
 
         this.state = {
             codeEditorOpen: false,
-            key: null
+            key: null,
+            actions: {}
         };
     }
 
@@ -79,6 +80,11 @@ class KeyProperties extends React.Component
         this.setState({key: key});
     }
 
+    onReceiveActions(err, data, handlers)
+    {
+        this.setState({ actions: data });
+    }
+
     //// LIFECYCLE EVENTS ////
 
     static getDerivedStateFromProps(props, state)
@@ -122,6 +128,11 @@ class KeyProperties extends React.Component
         return out;
     }
 
+    componentDidMount()
+    {
+        this.props.api.scenes.actions.get(this.onReceiveActions.bind(this));
+    }
+
     //// RENDER ////
 
     getKeyPositionDisplay(position)
@@ -141,13 +152,70 @@ class KeyProperties extends React.Component
     {
         let keyTypeComponent = this.getKeyTypeComponent(this.state.key);
         let scriptsOptions = [];
-
-        for(var i in this.props.scripts) {
+        let actionParameters = [];
+        let actionOptions = [
+            <option value="" key="">-- Select an action --</option>
+        ];
+        
+        // Generate scripts select options
+        for(let i in this.props.scripts) {
             scriptsOptions.push(
-                <option value={this.props.scripts[i]}>{this.props.scripts[i]}</option>
+                <option value={this.props.scripts[i]} key={i}>{this.props.scripts[i]}</option>
             );
         }
 
+        // Generate action list select options
+        if(this.state.actions) {
+            for(let i in this.state.actions) {
+                actionOptions.push(
+                    <option value={i} key={i}>
+                        {this.state.actions[i].name}
+                    </option>
+                );
+            }
+        }
+
+        // Generate action parameters
+        if(this.state.key && this.state.key.action.type) {
+            for(let i in this.state.actions[this.state.key.action.type].parameters) {
+                let parameter = this.state.actions[this.state.key.action.type].parameters[i];
+                let parameterFormElement = null;
+
+                switch(parameter.type) {
+                    case "script":
+                        parameterFormElement = (
+                            <select
+                                id="key-script"
+                                name="action.script"
+                                className="form-control custom-select"
+                                value={this.state.key.action.script}
+                                onChange={this.onChange.bind(this)}>
+                                {scriptsOptions}
+                            </select>
+                        );
+                        break;
+                    
+                    default:
+                        parameterFormElement = (
+                            <input
+                                id={"key-" + i}
+                                className="form-control"
+                                name={"action." + i}
+                                value={this.state.key.action[i] ?? ""}
+                                onChange={this.onChange.bind(this)} />
+                        );
+                }
+
+                actionParameters.push(
+                    <div className="form-group col-6" key={i}>
+                        <label htmlFor="key-scene">{parameter.label}:</label>
+                        {parameterFormElement}
+                    </div>
+                );
+            }
+        }
+
+        // Render block
         return (
             <div>
                 {this.state.key &&
@@ -189,41 +257,12 @@ class KeyProperties extends React.Component
                                         name="action.type"
                                         onChange={this.onChange.bind(this)}
                                         value={this.state.key.action.type}>
-                                            <option value="">-- Select an action --</option>
-                                            <option value="toggle">Toggle</option>
-                                            <option value="scene">Change scene</option>
-                                            <option value="script">Script</option>
+                                            {actionOptions}
                                     </select>
                                 </div>
 
-
-                                {/* Scene change target */}
-                                {this.state.key.action.type === "scene" && 
-                                    <div className="form-group col-6">
-                                        <label htmlFor="key-scene">Target scene:</label>
-                                        <input
-                                            id="key-scene"
-                                            className="form-control"
-                                            name="action.scene"
-                                            value={this.state.key.action.scene ?? ""}
-                                            onChange={this.onChange.bind(this)} />
-                                    </div>
-                                }
-
-                                {/* Eval code */}
-                                {this.state.key.action.type === "script" &&
-                                    <div className="form-group col-6">
-                                        <label htmlFor="key-script">Script:</label>
-                                        <select
-                                            id="key-script"
-                                            name="action.script"
-                                            className="form-control custom-select"
-                                            value={this.state.key.action.script}
-                                            onChange={this.onChange.bind(this)}>
-                                            {scriptsOptions}
-                                        </select>
-                                    </div>
-                                }
+                                {/* Action parameters */}
+                                {actionParameters}
                             </div>
 
                             {keyTypeComponent}

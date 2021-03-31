@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var _ = require("underscore");
 
 class ScenesAPI
 {
@@ -11,11 +12,12 @@ class ScenesAPI
     router()
     {
         router.get('/', this.getScenes.bind(this));
+        router.post('/', this.postScene.bind(this));
         router.get('/current', this.getCurrentScene.bind(this));
         router.put('/current', this.putCurrentScene.bind(this));
         router.get('/scene/:scene', this.getScene.bind(this));
         router.put('/scene/key', this.putKey.bind(this));
-        router.post('/', this.postScene.bind(this));
+        router.get('/actions', this.getActions.bind(this));
 
         return router;
     }
@@ -79,6 +81,24 @@ class ScenesAPI
         
         scene.setKey(req.body.key);
         res.json(true);
+    }
+
+    /** GET get actions info */
+    getActions(req, res, next)
+    {
+        let actions = this.sceneManager.getActionList();
+        let actionsInfo = {};
+
+        for(var i in actions) {
+            if(i && !_.contains(["setScriptManager", "scriptManager"], i)) {
+                actionsInfo[i] = {
+                    name: actions[i].name,
+                    parameters: actions[i].parameters
+                };
+            }
+        }
+
+        res.json(actionsInfo);
     }
 }
 
