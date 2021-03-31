@@ -57,7 +57,16 @@ class KeyProperties extends React.Component
         this.props.api.scenes.scene.key.put({
             scene: this.props.sceneId,
             key: keyToSend
-        }, () => this.setState({ modified: false }));
+        }, this.onUpdateKeySuccess.bind(this, keyToSend));
+    }
+
+    onUpdateKeySuccess(key)
+    {
+        if(this.props.onKeyUpdated) {
+            this.props.onKeyUpdated(key);
+        }
+
+        this.setState({ modified: false });
     }
 
     onChange(ev)

@@ -107,6 +107,28 @@ class App extends React.Component
         });
     }
 
+    onKeyUpdated(newKey)
+    {
+        let scene = this.state.currentScene;
+        let keyFound = false;
+
+        // Find and update the key in the scene data
+        for(var i in scene.keys) {
+            let key = scene.keys[i];
+            if(_.isEqual(key.position, newKey.position)) {
+                scene.keys[i] = newKey;
+                keyFound = true;
+                break;
+            }
+        }
+
+        if(!keyFound) {
+            scene.keys.push(newKey);
+        }
+
+        this.setState({ currentScene: scene });
+    }
+
     //// UTILITY METHODS ////
 
     loadSceneData(newScene)
@@ -167,6 +189,7 @@ class App extends React.Component
                             scripts={this.getScriptNames()}
                             sceneId={this.state.currentScene.id}
                             currentKey={this.state.currentKey}
+                            onKeyUpdated={this.onKeyUpdated.bind(this)}
                         />
                         <div className="footer">
                             Icons made by <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>

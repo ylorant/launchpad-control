@@ -24,16 +24,6 @@ class SystemOperations extends React.Component
         this.setState({ configPath: data });
     }
 
-    // onScriptChange(type, newScript)
-    // {
-    //     let scripts = this.state.scripts;
-
-    //     scripts[type] = newScript;
-
-    //     this.setState({ scripts: scripts });
-    //     this.props.api.scenes.scripts[type].put({ script: newScript }, () => {});
-    // }
-
     onSaveScript(name, newScript)
     {
         this.props.api.scripts.script[name].put({ script: newScript }, () => {});
