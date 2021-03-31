@@ -15,7 +15,8 @@ class KeyProperties extends React.Component
         this.state = {
             codeEditorOpen: false,
             key: null,
-            actions: {}
+            actions: {},
+            modified: false
         };
     }
 
@@ -56,7 +57,7 @@ class KeyProperties extends React.Component
         this.props.api.scenes.scene.key.put({
             scene: this.props.sceneId,
             key: keyToSend
-        }, () => {});
+        }, () => this.setState({ modified: false }));
     }
 
     onChange(ev)
@@ -64,20 +65,12 @@ class KeyProperties extends React.Component
         let key = this.state.key;
         set(key, ev.target.name, ev.target.value);
 
-        this.setState({key: key});
+        this.setState({key: key, modified: true});
     }
 
     onSpecificTypeChange(key)
     {
-        this.setState({key: key});
-    }
-
-    onCodeChange(newCode)
-    {
-        let key = this.state.key;
-        key.action.code = newCode;
-
-        this.setState({key: key});
+        this.setState({key: key, modified: true});
     }
 
     onReceiveActions(err, data, handlers)
@@ -122,6 +115,7 @@ class KeyProperties extends React.Component
                 keyObject.deviceType = props.currentKey.props.device.type;
             }
 
+            out.modified = false;
             out.key = keyObject;
         }
 
@@ -217,71 +211,75 @@ class KeyProperties extends React.Component
 
         // Render block
         return (
-            <div>
-                {this.state.key &&
-                    <div className="row">
-                        <div className="col">
-                            {/* Position */}
-                            <div className="row mb-2">
-                                <div className="col">
-                                    Device: <br />
-                                    <code className="ml-4">{this.state.key.device}</code><br />
-                                    <code className="ml-4">(Type) {this.state.key.deviceType}</code>
-                                </div>
-                                <div className="col">
-                                    Position: <br />
-                                    <code className="ml-4">
-                                        {this.getKeyPositionDisplay(this.state.key.position)}
-                                    </code>
-                                </div>
-                            </div>
-                            
-                            {/* Label */}
-                            <div className="form-group">
-                                <label htmlFor="key-label">Label:</label>
-                                <input 
-                                    id="key-label" 
-                                    className="form-control" 
-                                    name="label" 
-                                    value={this.state.key.label || ""}
-                                    onChange={this.onChange.bind(this)} />
-                            </div>
 
-                            <div className="row">
-                                {/* Action type */}
-                                <div className="form-group col-6">
-                                    <label htmlFor="key-action-type">Action type:</label>
-                                    <select 
-                                        id="key-action-type"
-                                        className="form-control custom-select" 
-                                        name="action.type"
-                                        onChange={this.onChange.bind(this)}
-                                        value={this.state.key.action.type}>
-                                            {actionOptions}
-                                    </select>
+            <fieldset className={this.state.modified ? "unsaved" : ""}>
+                <legend>Key {this.state.modified ? "[modified]" : ""}</legend>
+                <div>
+                    {this.state.key &&
+                        <div className="row">
+                            <div className="col">
+                                {/* Position */}
+                                <div className="row mb-2">
+                                    <div className="col">
+                                        Device: <br />
+                                        <code className="ml-4">{this.state.key.device}</code><br />
+                                        <code className="ml-4">(Type) {this.state.key.deviceType}</code>
+                                    </div>
+                                    <div className="col">
+                                        Position: <br />
+                                        <code className="ml-4">
+                                            {this.getKeyPositionDisplay(this.state.key.position)}
+                                        </code>
+                                    </div>
+                                </div>
+                                
+                                {/* Label */}
+                                <div className="form-group">
+                                    <label htmlFor="key-label">Label:</label>
+                                    <input 
+                                        id="key-label" 
+                                        className="form-control" 
+                                        name="label" 
+                                        value={this.state.key.label || ""}
+                                        onChange={this.onChange.bind(this)} />
                                 </div>
 
-                                {/* Action parameters */}
-                                {actionParameters}
+                                <div className="row">
+                                    {/* Action type */}
+                                    <div className="form-group col-6">
+                                        <label htmlFor="key-action-type">Action type:</label>
+                                        <select 
+                                            id="key-action-type"
+                                            className="form-control custom-select" 
+                                            name="action.type"
+                                            onChange={this.onChange.bind(this)}
+                                            value={this.state.key.action.type}>
+                                                {actionOptions}
+                                        </select>
+                                    </div>
+
+                                    {/* Action parameters */}
+                                    {actionParameters}
+                                </div>
+
+                                {keyTypeComponent}
+
+                                <Button 
+                                    variant="outline-primary"
+                                    onClick={this.onSubmit.bind(this)} 
+                                    className="mt-3">
+                                    Apply
+                                </Button>
                             </div>
-
-                            {keyTypeComponent}
-
-                            <Button 
-                                variant="outline-primary"
-                                onClick={this.onSubmit.bind(this)} 
-                                className="mt-3">
-                                Apply
-                            </Button>
                         </div>
-                    </div>
-                }
-                {this.state.key === null && 
-                    <div>
-                        No key selected.
-                    </div>
-                }
-            </div>
+                    }
+                    {this.state.key === null && 
+                        <div>
+                            No key selected.
+                        </div>
+                    }
+                </div>
+            </fieldset>
         );
     }
 }

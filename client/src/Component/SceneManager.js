@@ -99,114 +99,117 @@ class SceneManager extends React.Component
         }
 
         return (
-            <div className="row sceneManager">
-                <div className="col-9 form-group">
-                    <div className="input-group">
-                        <select 
-                            className="form-control custom-select" 
-                            onChange={this.onChangeSceneView.bind(this)}
-                            value={this.state.currentScene}>
-                                <option value="">
-                                    Live view
-                                </option>
-                            {scenesOptions}
-                        </select>
+            <fieldset>
+                <legend>Scene</legend>
+                <div className="row">
+                    <div className="col-9 form-group">
+                        <div className="input-group">
+                            <select 
+                                className="form-control custom-select" 
+                                onChange={this.onChangeSceneView.bind(this)}
+                                value={this.state.currentScene}>
+                                    <option value="">
+                                        Live view
+                                    </option>
+                                {scenesOptions}
+                            </select>
 
-                        <div className="input-group-append">    
-                            <Button 
-                                variant="btn btn-outline-primary" 
-                                disabled={this.state.currentScene === null}
-                                onClick={this.onChangeSceneButtonClick.bind(this)}>
-                                Change
-                            </Button>
-                            <Button 
-                                variant="btn btn-outline-danger"
-                                disabled={this.state.currentScene === null}
-                                onClick={() => this.setState({ deleteSceneConfirmPopupOpen: true })}>
-                                Delete
-                            </Button>
+                            <div className="input-group-append">    
+                                <Button 
+                                    variant="btn btn-outline-primary" 
+                                    disabled={this.state.currentScene === null}
+                                    onClick={this.onChangeSceneButtonClick.bind(this)}>
+                                    Change
+                                </Button>
+                                <Button 
+                                    variant="btn btn-outline-danger"
+                                    disabled={this.state.currentScene === null}
+                                    onClick={() => this.setState({ deleteSceneConfirmPopupOpen: true })}>
+                                    Delete
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="col-3 text-center">
-                    <Button 
-                        variant="outline-success"
-                        onClick={() => this.setState({ newScenePopupOpen: true})}>
-                        New scene
-                    </Button>
-                </div>
+                    <div className="col-3 text-center">
+                        <Button 
+                            variant="outline-success"
+                            onClick={() => this.setState({ newScenePopupOpen: true})}>
+                            New scene
+                        </Button>
+                    </div>
 
-                {/* Delete scene modal */}
-                <Modal
-                    show={this.state.deleteSceneConfirmPopupOpen}
-                    onHide={() => this.setState({ deleteSceneConfirmPopupOpen: false })}
-                    backdrop="static"
-                    keyboard={false}
-                    centered>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Delete scene</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        Do you really want to delete this scene ?
-                    </Modal.Body>
-                    <Modal.Footer>
-                    <Button 
-                        variant="outline-secondary" 
-                        onClick={() => this.setState({ deleteSceneConfirmPopupOpen: false })}>
-                        Cancel
-                    </Button>
-                    <Button 
-                        variant="outline-danger"
-                        onClick={this.onConfirmDeleteScene.bind(this)}>
-                        Delete
-                    </Button>
-                    </Modal.Footer>
-                </Modal>
-
-                {/* New scene modal */}
-                <Modal
-                    show={this.state.newScenePopupOpen}
-                    onHide={() => this.setState({ newScenePopupOpen: false })}
-                    backdrop="static"
-                    keyboard={true}
-                    centered>
-                    <Modal.Header closeButton>
-                        <Modal.Title>New scene</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <div className="form-group">
-                            <label>Name:</label>
-                            <input 
-                                className="form-control" 
-                                type="text"
-                                value={this.state.newSceneName}
-                                onChange={(ev) => this.setState({ newSceneName: ev.target.value })} />
-                        </div>
-                        <div className="form-group">
-                            <label>ID:</label>
-                            <input 
-                                className="form-control" 
-                                type="text"
-                                placeholder={this.generateIDFromName()}
-                                value={this.state.newSceneId}
-                                onChange={(ev) => this.setState({ newSceneId: ev.target.value })} />
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer>
+                    {/* Delete scene modal */}
+                    <Modal
+                        show={this.state.deleteSceneConfirmPopupOpen}
+                        onHide={() => this.setState({ deleteSceneConfirmPopupOpen: false })}
+                        backdrop="static"
+                        keyboard={false}
+                        centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Delete scene</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Do you really want to delete this scene ?
+                        </Modal.Body>
+                        <Modal.Footer>
                         <Button 
                             variant="outline-secondary" 
-                            onClick={() => this.setState({ newScenePopupOpen: false })}>
+                            onClick={() => this.setState({ deleteSceneConfirmPopupOpen: false })}>
                             Cancel
                         </Button>
                         <Button 
-                            variant="outline-success"
-                            onClick={this.onCreateScene.bind(this)}>
-                            Create
+                            variant="outline-danger"
+                            onClick={this.onConfirmDeleteScene.bind(this)}>
+                            Delete
                         </Button>
-                    </Modal.Footer>
-                </Modal>
-            </div>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* New scene modal */}
+                    <Modal
+                        show={this.state.newScenePopupOpen}
+                        onHide={() => this.setState({ newScenePopupOpen: false })}
+                        backdrop="static"
+                        keyboard={true}
+                        centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>New scene</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <div className="form-group">
+                                <label>Name:</label>
+                                <input 
+                                    className="form-control" 
+                                    type="text"
+                                    value={this.state.newSceneName}
+                                    onChange={(ev) => this.setState({ newSceneName: ev.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>ID:</label>
+                                <input 
+                                    className="form-control" 
+                                    type="text"
+                                    placeholder={this.generateIDFromName()}
+                                    value={this.state.newSceneId}
+                                    onChange={(ev) => this.setState({ newSceneId: ev.target.value })} />
+                            </div>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button 
+                                variant="outline-secondary" 
+                                onClick={() => this.setState({ newScenePopupOpen: false })}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="outline-success"
+                                onClick={this.onCreateScene.bind(this)}>
+                                Create
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </div>
+            </fieldset>
         );
     }
 }

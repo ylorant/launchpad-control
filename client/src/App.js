@@ -150,33 +150,24 @@ class App extends React.Component
                             onSelectKey={this.onCurrentKeyChanged.bind(this)} />
                     </div>
                     <div className="col-md-6 col-xs-12">
-                        <fieldset>
-                            <legend>System</legend>
-                            <SystemOperations
-                                api={this.api}
-                                scripts={this.state.scripts}
-                                onScriptsUpdate={this.onScriptsReceive.bind(this, null)}
-                            />
-                        </fieldset>
+                        <SystemOperations
+                            api={this.api}
+                            scripts={this.state.scripts}
+                            onScriptsUpdate={this.onScriptsReceive.bind(this, null)}
+                        />
                         
-                        <fieldset>
-                            <legend>Scene</legend>
-                            <SceneManager
-                                api={this.api}
-                                eventListener={this.eventListener}
-                                onSceneViewChange={this.onSceneViewChange.bind(this)}
-                            />
-                        </fieldset>
+                        <SceneManager
+                            api={this.api}
+                            eventListener={this.eventListener}
+                            onSceneViewChange={this.onSceneViewChange.bind(this)}
+                        />
                         
-                        <fieldset>
-                            <legend>Key</legend>
-                            <KeyProperties
-                                api={this.api}
-                                scripts={this.getScriptNames()}
-                                sceneId={this.state.currentScene.id}
-                                currentKey={this.state.currentKey}
-                            />
-                        </fieldset>
+                        <KeyProperties
+                            api={this.api}
+                            scripts={this.getScriptNames()}
+                            sceneId={this.state.currentScene.id}
+                            currentKey={this.state.currentKey}
+                        />
                         <div className="footer">
                             Icons made by <a href="https://www.flaticon.com/authors/flat-icons" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
                         </div>

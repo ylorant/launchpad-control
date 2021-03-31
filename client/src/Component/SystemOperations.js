@@ -122,67 +122,70 @@ class SystemOperations extends React.Component
         }
 
         return (
-            <div className="row-container">
-                <div className="row align-items-end">
-                    <div className="col-6 form-group">
-                        <label>Quick actions:</label><br />
-                        <Button
-                            variant="outline-primary"
-                            onClick={this.onReconnect.bind(this)}
-                            className="mr-3">
-                            Reconnect
-                        </Button>
-                        <ScriptEditor
-                            onSave={this.onSaveScript.bind(this)}
-                            scripts={this.props.scripts} />
-                    </div>
-                    <div className="col-6 form-group">
-                        <label>Configuration: </label>
-                        <div className="input-group">
-                            <input 
-                                className="form-control" 
-                                name="config-file" 
-                                placeholder="Configuration path..."
-                                value={this.state.configPath}
-                                onChange={(ev) => this.setState({  configPath: ev.target.value  })} />
-                            <div className="input-group-append">
-                                <Button 
-                                    variant="outline-primary"
-                                    onClick={this.onLoadConfig.bind(this)}>
-                                    Load
-                                </Button>
-                                <Button
-                                    variant="outline-success"
-                                    onClick={this.onSaveConfig.bind(this)}>
-                                    Save
-                                </Button>
+            <fieldset>
+                <legend>System</legend>
+                <div className="row-container">
+                    <div className="row align-items-end">
+                        <div className="col-6 form-group">
+                            <label>Quick actions:</label><br />
+                            <Button
+                                variant="outline-primary"
+                                onClick={this.onReconnect.bind(this)}
+                                className="mr-3">
+                                Reconnect
+                            </Button>
+                            <ScriptEditor
+                                onSave={this.onSaveScript.bind(this)}
+                                scripts={this.props.scripts} />
+                        </div>
+                        <div className="col-6 form-group">
+                            <label>Configuration: </label>
+                            <div className="input-group">
+                                <input 
+                                    className="form-control" 
+                                    name="config-file" 
+                                    placeholder="Configuration path..."
+                                    value={this.state.configPath}
+                                    onChange={(ev) => this.setState({  configPath: ev.target.value  })} />
+                                <div className="input-group-append">
+                                    <Button 
+                                        variant="outline-primary"
+                                        onClick={this.onLoadConfig.bind(this)}>
+                                        Load
+                                    </Button>
+                                    <Button
+                                        variant="outline-success"
+                                        onClick={this.onSaveConfig.bind(this)}>
+                                        Save
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="row">
-                    <div className="col-6 form-group">
-                        <label>Setup script:</label>
-                        <select
-                            onChange={this.onHookChange.bind(this, "setup")}
-                            value={this.state.hooks.setup || ""}
-                            className="form-control custom-select">
-                            {hooksOptions}
-                        </select>
-                    </div>
+                    <div className="row">
+                        <div className="col-6 form-group">
+                            <label>Setup script:</label>
+                            <select
+                                onChange={this.onHookChange.bind(this, "setup")}
+                                value={this.state.hooks.setup || ""}
+                                className="form-control custom-select">
+                                {hooksOptions}
+                            </select>
+                        </div>
 
-                    <div className="col-6 form-group">
-                        <label>Teardown script:</label>
-                        <select
-                            onChange={this.onHookChange.bind(this, "teardown")}
-                            value={this.state.hooks.teardown || ""}
-                            className="form-control custom-select">
-                            {hooksOptions}
-                        </select>
+                        <div className="col-6 form-group">
+                            <label>Teardown script:</label>
+                            <select
+                                onChange={this.onHookChange.bind(this, "teardown")}
+                                value={this.state.hooks.teardown || ""}
+                                className="form-control custom-select">
+                                {hooksOptions}
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </fieldset>
         );
     }
 }
