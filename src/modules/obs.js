@@ -333,7 +333,9 @@ class OBSModule extends Module
                         label: "Scene",
                         type: "choice",
                         values: function() {
-                            return this.sceneList;
+                            let sceneList = _.clone(this.sceneList);
+                            sceneList.unshift(OBSModule.CURRENT_PREVIEW);
+                            return sceneList;
                         }
                     },
 
@@ -376,7 +378,9 @@ class OBSModule extends Module
                     // TODO: Refactor this to avoid repetitions
                     // Analog handling (slider/rotary)
                     if(key.value != null) {
-                        let sceneItemKey = key.action.scene + "_" + key.action.source;
+                        // Handle current preview
+                        let sceneName = key.action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : key.action.scene;
+                        let sceneItemKey = sceneName + "_" + key.action.source;
                         
                         switch(key.action.behavior) {
                             case "jogwheel":
@@ -499,6 +503,37 @@ class OBSModule extends Module
                         }
                     }
                 }
+            },
+
+            obs_toggle_visible: {
+                label: "OBS: Toggle source visibility",
+                parameters: {
+                    scene: {
+                        label: "Scene",
+                        type: "choice",
+                        values: function() {
+                            let sceneList = _.clone(this.sceneList);
+                            sceneList.unshift(OBSModule.CURRENT_PREVIEW);
+                            return sceneList;
+                        }
+                    },
+
+                    source: {
+                        label: "Target source",
+                        type: "choice",
+                        values: function() {
+                            return this.getVideoSources();
+                        }
+                    },
+                },
+                perform: function(key) {
+                    let sceneName = key.action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : key.action.scene;
+                    
+                    this.obsConnection.send('GetSceneItemProperties', { 'scene-name': sceneName, 'item': key.action.source })
+                        .then(data => {
+                            this.obsConnection.send('SetSceneItemRender', { 'scene-name': sceneName, 'source': key.action.source, render: !data.visible});
+                        });
+                }
             }
         };
     }
@@ -514,6 +549,13 @@ Object.defineProperty(OBSModule, 'JOGWHEEL_LOCK_MIN', {
 
 Object.defineProperty(OBSModule, 'JOGWHEEL_LOCK_MAX', {
     value: 127,
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+
+Object.defineProperty(OBSModule, 'CURRENT_PREVIEW', {
+    value: "Current preview",
     writable: false,
     configurable: false,
     enumerable: true,
