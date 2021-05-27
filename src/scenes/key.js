@@ -49,11 +49,11 @@ class Key
 
     executeAction()
     {
-        if(!("type" in this.action) || !(this.action.type in this.scene.manager.actionList)) {
+        if(!("type" in this.action)) {
             return;
         }
 
-        this.scene.manager.actionList[this.action.type].perform(this);
+        this.scene.manager.moduleManager.callAction(this.action.type, [this]);
     }
 
     toJSON(key)

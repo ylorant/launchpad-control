@@ -1,5 +1,4 @@
 const Scene = require('./scene');
-const actionList = require('./action-list');
 
 class Manager
 {
@@ -7,14 +6,16 @@ class Manager
     {
         this.deviceManager = deviceManager;
         this.scriptsManager = scriptsManager;
-        this.actionList = actionList;
         this.resetProperties();
-
-        this.actionList.setScriptManager(this.scriptsManager);
                 
         this.deviceManager.on('press', this.onDevicePress.bind(this));
         this.deviceManager.on('release', this.onDeviceRelease.bind(this));
         this.deviceManager.on('analog', this.onDeviceAnalog.bind(this));
+    }
+
+    setModuleManager(moduleManager)
+    {
+        this.moduleManager = moduleManager;
     }
 
     resetProperties()
@@ -89,9 +90,14 @@ class Manager
         return null;
     }
 
-    getCurrentScene()
+    getCurrentSceneName()
     {
         return this.currentScene;
+    }
+
+    getCurrentScene()
+    {
+        return this.scenes[this.currentScene];
     }
 
     changeScene(sceneName, render = true)
@@ -118,6 +124,27 @@ class Manager
         });
 
         return true;
+    }
+
+    //// KEYS ////
+
+    getKeysByAction(keyAction, scene = null)
+    {
+        let output = [];
+
+        for(let i in this.scenes) {
+            if(scene && this.scenes[i].id != scene) {
+                continue;
+            }
+
+            for(let j in this.scenes[i].keys) {
+                if(this.scenes[i].keys[j].action.type == keyAction) {
+                    output.push(this.scenes[i].keys[j]);
+                }
+            }
+        }
+
+        return output;
     }
 
     //// RENDER ////

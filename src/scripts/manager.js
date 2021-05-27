@@ -34,7 +34,7 @@ class ScriptsManager
             },
             NanoKontrol: NanoKontrol,
 
-            // Global access vars: launchpad and logger
+            // Global access vars: script manager and logger
             scriptManager: this,
             logger: logger
         };

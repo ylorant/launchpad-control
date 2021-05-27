@@ -57,6 +57,10 @@ class NanoKontrol extends Device
     /** Lights the given element (by its position) of the given value (usually color) */
     light(position, value)
     {
+        if(!this.nanokontrolDevice) {
+            return false;
+        }
+
         if(!position.element || !position.element.match(/^button/i)) {
             return false;
         }

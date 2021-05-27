@@ -17,7 +17,6 @@ class ScenesAPI
         router.put('/current', this.putCurrentScene.bind(this));
         router.get('/scene/:scene', this.getScene.bind(this));
         router.put('/scene/key', this.putKey.bind(this));
-        router.get('/actions', this.getActions.bind(this));
 
         return router;
     }
@@ -50,7 +49,7 @@ class ScenesAPI
     /** GET current loaded scene */
     getCurrentScene(req, res, next)
     {
-        res.json(this.sceneManager.getCurrentScene());
+        res.json(this.sceneManager.getCurrentSceneName());
     }
 
     /** PUT update current scene */
@@ -81,24 +80,6 @@ class ScenesAPI
         
         scene.setKey(req.body.key);
         res.json(true);
-    }
-
-    /** GET get actions info */
-    getActions(req, res, next)
-    {
-        let actions = this.sceneManager.getActionList();
-        let actionsInfo = {};
-
-        for(var i in actions) {
-            if(i && !_.contains(["setScriptManager", "scriptManager"], i)) {
-                actionsInfo[i] = {
-                    name: actions[i].name,
-                    parameters: actions[i].parameters
-                };
-            }
-        }
-
-        res.json(actionsInfo);
     }
 }
 

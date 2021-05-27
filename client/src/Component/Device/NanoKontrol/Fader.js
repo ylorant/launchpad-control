@@ -16,8 +16,11 @@ class Fader extends React.Component
 
     getKey(position)
     {
-        if(this.props.keyObject && this.props.keyObject.position.element.startsWith(position)) {
-            return this.props.keyObject;
+        for(var i in this.props.keyObjects) {
+            let key = this.props.keyObjects[i];
+            if(key.position.element.startsWith(position)) {
+                return key;
+            }
         }
 
         return null;

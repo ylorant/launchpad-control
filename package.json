@@ -14,11 +14,12 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
+    "korg-nano-kontrol": "https://github.com/ylorant/korg-nano-kontrol/tarball/master",
     "launchpadder": "0.0.5",
     "mercure": "^0.1.0",
     "morgan": "~1.9.1",
+    "obs-websocket-js": "^4.0.2",
     "underscore": "^1.10.2",
-    "winston": "^3.3.3",
-    "korg-nano-kontrol": "https://github.com/ylorant/korg-nano-kontrol/tarball/master"
+    "winston": "^3.3.3"
   }
 }

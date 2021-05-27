@@ -33,8 +33,10 @@ class NanoKontrol extends React.Component
         });
     }
 
-    getKey(position)
+    getKey(position, multiple = false)
     {
+        let keys = [];
+        
         if(this.state.scene === null) {
             return null;
         }
@@ -44,14 +46,18 @@ class NanoKontrol extends React.Component
             
             if(key.device === this.props.device.id) {
                 if(position instanceof RegExp && key.position.element.match(position)) {
-                    return key;
+                    keys.push(key);
                 } else if(key.position.element === position) {
-                    return key;
+                    keys.push(key);
                 }
+            }
+
+            if(keys.length > 0 && !multiple) {
+                return keys[0];
             }
         }
 
-        return null;
+        return multiple ? keys : null;
     }
 
     isKeySelected(position)
@@ -72,7 +78,7 @@ class NanoKontrol extends React.Component
 
         // Generate columns
         for(let i = 0; i < 8; i++) {
-            let faderCurrentKey = this.getKey(new RegExp("((button|slider|knob)(:(s|m|r))?:" + i + ")", "i"));
+            let faderCurrentKeys = this.getKey(new RegExp("((button|slider|knob)(:(s|m|r))?:" + i + ")", "i"), true);
             faderColumns.push(
                 <Fader
                     device={this.props.device}
@@ -80,7 +86,7 @@ class NanoKontrol extends React.Component
                     key={i}
                     onClick={this.onSelectKey.bind(this)}
                     selectedKey={this.state.selectedKey}
-                    keyObject={faderCurrentKey} />
+                    keyObjects={faderCurrentKeys} />
             );
         }
 

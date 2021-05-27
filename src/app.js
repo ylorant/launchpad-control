@@ -11,8 +11,10 @@ const ScenesAPI = require('./api/scenes');
 const SystemAPI = require('./api/system');
 const ScriptsAPI = require('./api/scripts');
 const DevicesAPI = require('./api/devices');
+const ModulesAPI = require('./api/modules');
 
-// Launchpad requires
+// Components requires
+const ModuleManager = require('./modules');
 const DeviceManager = require('./devices');
 const SceneManager = require('./scenes');
 const ScriptsManager = require('./scripts');
@@ -88,6 +90,12 @@ logger.info("Initializing scene manager...");
 var sm = new SceneManager(dm, scrm);
 sm.init(conf.get("scenes", {}));
 
+//// MODULE MANAGER INIT ////
+
+logger.info("Initializing module manager...");
+var modm = new ModuleManager(scrm, sm, conf);
+sm.setModuleManager(modm);
+
 // Initial rendering when devices are ready
 dm.on('ready', sm.render.bind(sm));
 
@@ -111,6 +119,7 @@ if (process.platform === "win32") {
 process.on('SIGINT', function() {
     logger.info("Caught SIGINT, exiting.");
     scrm.close();
+    modm.shutdown();
     dm.close();
     process.exit();
 });
@@ -143,12 +152,14 @@ var routes = {
     scenes: new ScenesAPI(sm),
     devices: new DevicesAPI(dm),
     scripts: new ScriptsAPI(scrm),
+    modules: new ModulesAPI(modm),
     system: new SystemAPI(sm, dm, conf)
 };
 
 app.use('/scenes', routes.scenes.router());
 app.use('/devices', routes.devices.router());
 app.use('/scripts', routes.scripts.router());
+app.use('/modules', routes.modules.router());
 app.use('/system', routes.system.router());
 
 //// AFTER-ROUTING MIDDLEWARE ////

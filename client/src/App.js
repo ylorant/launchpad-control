@@ -164,14 +164,14 @@ class App extends React.Component
         return (
             <div className="app container-fluid mt-4">
                 <div className="row">
-                    <div className="col-md-6  col-xs-12 text-center">
+                    <div className="col-lg-6 col-xs-12 text-center">
                         <DeviceManager
                             api={this.api}
                             scene={this.state.currentScene}
                             selectedKey={this.state.currentKey}
                             onSelectKey={this.onCurrentKeyChanged.bind(this)} />
                     </div>
-                    <div className="col-md-6 col-xs-12">
+                    <div className="col-lg-6 col-xs-12">
                         <SystemOperations
                             api={this.api}
                             scripts={this.state.scripts}

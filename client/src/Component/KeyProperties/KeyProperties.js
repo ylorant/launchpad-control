@@ -133,7 +133,7 @@ class KeyProperties extends React.Component
 
     componentDidMount()
     {
-        this.props.api.scenes.actions.get(this.onReceiveActions.bind(this));
+        this.props.api.modules.actions.get(this.onReceiveActions.bind(this));
     }
 
     //// RENDER ////
@@ -154,25 +154,17 @@ class KeyProperties extends React.Component
     render()
     {
         let keyTypeComponent = this.getKeyTypeComponent(this.state.key);
-        let scriptsOptions = [];
         let actionParameters = [];
         let actionOptions = [
             <option value="" key="">-- Select an action --</option>
         ];
-        
-        // Generate scripts select options
-        for(let i in this.props.scripts) {
-            scriptsOptions.push(
-                <option value={this.props.scripts[i]} key={i}>{this.props.scripts[i]}</option>
-            );
-        }
 
         // Generate action list select options
         if(this.state.actions) {
             for(let i in this.state.actions) {
                 actionOptions.push(
                     <option value={i} key={i}>
-                        {this.state.actions[i].name}
+                        {this.state.actions[i].label}
                     </option>
                 );
             }
@@ -186,10 +178,24 @@ class KeyProperties extends React.Component
 
                 switch(parameter.type) {
                     case "script":
+                        let scriptsOptions = [];
+
+                        // Default option
+                        scriptsOptions.push(
+                            <option value="" key="__empty__">-- None --</option>
+                        );
+
+                        // Generate scripts select options
+                        for(let k in this.props.scripts) {
+                            scriptsOptions.push(
+                                <option value={this.props.scripts[k]} key={k}>{this.props.scripts[k]}</option>
+                            );
+                        }
+
                         parameterFormElement = (
                             <select
-                                id="key-script"
-                                name="action.script"
+                                id={"key-action-" + i}
+                                name={"action." + i}
                                 className="form-control custom-select"
                                 value={this.state.key.action.script}
                                 onChange={this.onChange.bind(this)}>
@@ -198,12 +204,48 @@ class KeyProperties extends React.Component
                         );
                         break;
                     
+                    case "choice":
+                        let parameterOptions = [];
+
+                        // Default option
+                        parameterOptions.push(
+                            <option value="" key="__empty__">-- None --</option>
+                        );
+
+                        // Generate choice values options
+                        for(let k in parameter.values) {
+                            let key, value;
+
+                            if(parameter.values instanceof Array) {
+                                key = parameter.values[k];
+                                value = parameter.values[k];
+                            } else {
+                                key = k;
+                                value = parameter.values[k];
+                            }
+
+                            parameterOptions.push(<option value={key} key={k}>{value}</option>);
+                        }
+
+                        parameterFormElement = (
+                            <select
+                                id={"key-action-" + i}
+                                className="form-control custom-select"
+                                name={"action." + i}
+                                value={this.state.key.action[i] ?? ""}
+                                onChange={this.onChange.bind(this)}>
+                                {parameterOptions}
+                            </select>
+                        );
+                        break;
+                    
                     default:
                         parameterFormElement = (
                             <input
-                                id={"key-" + i}
+                                id={"key-action-" + i}
                                 className="form-control"
                                 name={"action." + i}
+                                type={parameter.type ?? "text"}
                                 value={this.state.key.action[i] ?? ""}
                                 onChange={this.onChange.bind(this)} />
                         );
