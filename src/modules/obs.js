@@ -145,8 +145,9 @@ class OBSModule extends Module
                 continue;
             }
 
+            let sceneName = keyAction.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keyAction.scene;
             let itemPropertiesUpdate = {
-                'scene-name': keyAction.scene,
+                'scene-name': sceneName,
                 'item': keyAction.source,
                 crop: {}
             };
@@ -399,7 +400,7 @@ class OBSModule extends Module
                                         let cropAmount = Math.max(0, this.sceneItemCache[sceneItemKey].crop[key.action.direction] + diff);
 
                                         let itemPropertiesUpdate = {
-                                            'scene-name': key.action.scene,
+                                            'scene-name': sceneName,
                                             'item': key.action.source,
                                             crop: {}
                                         };
@@ -412,7 +413,7 @@ class OBSModule extends Module
                                     if(!this.sceneItemCache[sceneItemKey]) {
                                         // Fetch data in cache then perform the crop
                                         this.obsConnection
-                                            .send('GetSceneItemProperties', { 'scene-name': key.action.scene, item: key.action.source })
+                                            .send('GetSceneItemProperties', { 'scene-name': sceneName, item: key.action.source })
                                             .then((data) => {
                                                 this.sceneItemCache[sceneItemKey] = data;
                                                 performSceneItemCrop.apply(this);
@@ -424,7 +425,7 @@ class OBSModule extends Module
                                     if(!this.sceneItemCache[sceneItemKey]) {
                                         // Fetch data in cache then perform the crop
                                         this.obsConnection
-                                            .send('GetSceneItemProperties', { 'scene-name': key.action.scene, item: key.action.source })
+                                            .send('GetSceneItemProperties', { 'scene-name': sceneName, item: key.action.source })
                                             .then((data) => {
                                                 this.sceneItemCache[sceneItemKey] = data;
                                             });
