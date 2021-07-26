@@ -20,16 +20,16 @@ class Launchpad extends Device
         return "Novation Launchpad";
     }
 
-    init(config)
+    init(data)
     {
-        super.init(config);
+        super.init(data);
 
         let defaultConfig = {
             inputPort: null,
             outputPort: null,
         };
 
-        this.config = _.extend(defaultConfig, config);
+        this.config = _.extend(defaultConfig, data.config);
         this.pad = null;
 
         // Open launchpad with options
@@ -67,6 +67,7 @@ class Launchpad extends Device
             // If one port is still missing, we 
             if(this.config.inputPort == null || this.config.outputPort == null) {
                 logger.error("Could not discover a Launchpad.");
+                this.emit("ready");
                 return false;
             }
         }

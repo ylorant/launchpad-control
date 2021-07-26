@@ -1,8 +1,8 @@
 import React from "react";
-import NanokontrolColors from "../Device/NanoKontrol/Colors";
+import VirtualDeviceColors from "../Device/VirtualDevice/Colors";
 import KeyColor from "./KeyColor";
 
-class NanoKontrolKeyProperties extends React.Component
+class VirtualDeviceKeyProperties extends React.Component
 {
     onColorChange(type, newColor)
     {
@@ -14,36 +14,14 @@ class NanoKontrolKeyProperties extends React.Component
         }
     }
 
-    getTypeColorCssClass(type)
-    {
-        if(this.props.currentKey.colors[type] === "on") {
-            return "outline-danger";
-        }
-        
-        return "outline-secondary";
-    }
-
-    getTypeColorLabel(type)
-    {
-        if(this.props.currentKey.colors[type] === "on") {
-            return "On";
-        }
-
-        return "Off";
-    }
-
     render()
     {
         let keyId = "";
 
         if(this.props.currentKey) {
-            keyId = this.props.currentKey.position.element;
+            keyId = this.props.currentKey.position.id + "-" + this.props.sceneId;
         } else {
             keyId = "undefined";
-        }
-
-        if(!this.props.currentKey.position.element.match(/button:*/)) {
-            return null;
         }
 
         return (
@@ -53,21 +31,21 @@ class NanoKontrolKeyProperties extends React.Component
                 <div className="col">
                     <KeyColor 
                         label="Inactive color"
-                        colorsList={NanokontrolColors}
+                        colorsList={VirtualDeviceColors}
                         key={"inactive-" + keyId}
                         onChange={this.onColorChange.bind(this, "inactive")}
                         color={this.props.currentKey.colors.inactive} />
 
                     <KeyColor 
                         label="Active color"
-                        colorsList={NanokontrolColors}
+                        colorsList={VirtualDeviceColors}
                         key={"active-" + keyId}
                         onChange={this.onColorChange.bind(this, "active")}
                         color={this.props.currentKey.colors.active} />
 
                     <KeyColor 
                         label="Pressed color"
-                        colorsList={NanokontrolColors}
+                        colorsList={VirtualDeviceColors}
                         key={"pressed-" + keyId}
                         onChange={this.onColorChange.bind(this, "pressed")}
                         color={this.props.currentKey.colors.pressed} />
@@ -77,4 +55,4 @@ class NanoKontrolKeyProperties extends React.Component
     }
 }
 
-export default NanoKontrolKeyProperties;
+export default VirtualDeviceKeyProperties;

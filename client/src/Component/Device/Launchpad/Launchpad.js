@@ -9,16 +9,13 @@ class Launchpad extends React.Component
     {
         super(props);
 
-        this.state = {
-            selectedKey: null,
-            scene: this.props.scene
-        };
+        this.state = {};
     }
 
     onSelectKey(key)
     {
         let newSelectedKey = key;
-        if(this.state.selectedKey !== null && this.state.selectedKey.props.x === key.props.x && this.state.selectedKey.props.y === key.props.y) {
+        if(this.props.selectedKey !== null && this.props.selectedKey.props.x === key.props.x && this.props.selectedKey.props.y === key.props.y) {
             newSelectedKey = null;
         }
 
@@ -33,12 +30,12 @@ class Launchpad extends React.Component
 
     getKey(x, y)
     {
-        if(this.state.scene === null) {
+        if(this.props.scene === null) {
             return null;
         }
 
-        for(var i in this.state.scene.keys) {
-            let key = this.state.scene.keys[i];
+        for(var i in this.props.scene.keys) {
+            let key = this.props.scene.keys[i];
             let keyY = key.position.y === 8 ? 0 : key.position.y + 1;
 
             if(key.device === this.props.device.id && key.position.x === x && keyY === y) {
@@ -57,7 +54,7 @@ class Launchpad extends React.Component
         };
 
         // Reset the selected key on scene change
-        if(props.scene.id !== state.scene.id) {
+        if(props.scene.id !== props.scene.id) {
             if(props.onSelectKey) {
                 props.onSelectKey(null);
             }
@@ -88,9 +85,9 @@ class Launchpad extends React.Component
                 let selected = false;
                 let keyY = j === 0 ? 8 : j - 1; // Converting from visual representation to actual position
 
-                if(this.state.selectedKey
-                && this.state.selectedKey.props.x === i 
-                && this.state.selectedKey.props.y === keyY) {
+                if(this.props.selectedKey
+                && this.props.selectedKey.props.x === i 
+                && this.props.selectedKey.props.y === keyY) {
                     selected = true;
                 }
 

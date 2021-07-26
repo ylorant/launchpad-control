@@ -12,6 +12,7 @@
     "jquery": "^3.5.1",
     "material-design-iconic-font": "^2.2.0",
     "popper.js": "^1.16.1",
+    "query-string": "^7.0.1",
     "react": "^16.13.1",
     "react-ace": "^9.2.1",
     "react-bootstrap": "^1.4.0",

@@ -11,6 +11,7 @@ const ScenesAPI = require('./api/scenes');
 const SystemAPI = require('./api/system');
 const ScriptsAPI = require('./api/scripts');
 const DevicesAPI = require('./api/devices');
+const VirtualDeviceAPI = require('./api/virtual-device');
 const ModulesAPI = require('./api/modules');
 
 // Components requires
@@ -151,6 +152,7 @@ app.get('/', function (req, res) {
 var routes = {
     scenes: new ScenesAPI(sm),
     devices: new DevicesAPI(dm),
+    virtualdevice: new VirtualDeviceAPI(dm, sm),
     scripts: new ScriptsAPI(scrm),
     modules: new ModulesAPI(modm),
     system: new SystemAPI(sm, dm, conf)
@@ -158,6 +160,7 @@ var routes = {
 
 app.use('/scenes', routes.scenes.router());
 app.use('/devices', routes.devices.router());
+app.use('/virtualdevice', routes.virtualdevice.router());
 app.use('/scripts', routes.scripts.router());
 app.use('/modules', routes.modules.router());
 app.use('/system', routes.system.router());

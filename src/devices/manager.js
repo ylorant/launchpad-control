@@ -1,5 +1,6 @@
 const Launchpad = require('./launchpad');
 const NanoKontrol = require('./korg-nanokontrol');
+const VirtualDevice = require('./virtual-device');
 const EventEmitter = require('events');
 
 class DeviceManager extends EventEmitter
@@ -25,22 +26,7 @@ class DeviceManager extends EventEmitter
         if("list" in deviceConfig) {
             for(var i in deviceConfig.list) {
                 logger.info("Device: " + i);
-
-                let currentDeviceConfig = deviceConfig.list[i];
-                let deviceTypeList = this.getDeviceTypes();
-
-                for(var deviceName in deviceTypeList) {
-                    if(deviceName == currentDeviceConfig.type) {
-                        let device = new deviceTypeList[deviceName]();
-                        device.on("ready", this.onDeviceReady.bind(this, device));
-                        device.on("press", this.onDevicePress.bind(this, device));
-                        device.on("release", this.onDeviceRelease.bind(this, device));
-                        device.on("analog", this.onDeviceAnalog.bind(this, device));
-                        device.init(deviceConfig.list[i]);
-
-                        this.devices.push(device);
-                    }
-                }
+                this.create(deviceConfig.list[i]);
             }
         }
     }
@@ -51,8 +37,30 @@ class DeviceManager extends EventEmitter
 
         deviceTypes[Launchpad.getType()] = Launchpad;
         deviceTypes[NanoKontrol.getType()] = NanoKontrol;
+        deviceTypes[VirtualDevice.getType()] = VirtualDevice;
 
         return deviceTypes;
+    }
+
+    create(config)
+    {
+        let deviceTypeList = this.getDeviceTypes();
+        
+        if(!(config.type in deviceTypeList)) {
+            return false;
+        }
+
+        let device = new deviceTypeList[config.type]();
+        
+        device.on("ready", this.onDeviceReady.bind(this, device));
+        device.on("press", this.onDevicePress.bind(this, device));
+        device.on("release", this.onDeviceRelease.bind(this, device));
+        device.on("analog", this.onDeviceAnalog.bind(this, device));
+        device.init(config);
+
+        this.devices.push(device);
+
+        return true;
     }
 
     get(deviceId = null)
@@ -68,6 +76,22 @@ class DeviceManager extends EventEmitter
         }
 
         return null;
+    }
+
+    delete(deviceId)
+    {
+        let device = this.get(deviceId);
+
+        if(device) {
+            device.close();
+
+            for(var i in this.devices) {
+                if(this.devices[i].id == deviceId) {
+                    this.devices.splice(i, 1);
+                    break;
+                }
+            }
+        }
     }
 
     open()
@@ -107,6 +131,21 @@ class DeviceManager extends EventEmitter
     onDeviceAnalog(device, position, value)
     {
         this.emit("analog", device, position, value);
+    }
+
+    export()
+    {
+        let config = {
+            list: {}
+        };
+
+        for(let i in this.devices) {
+            let deviceExport = this.devices[i].export();
+            delete deviceExport.typeName;
+            config.list[deviceExport.id] = deviceExport;
+        }
+        
+        return config;
     }
 }
 

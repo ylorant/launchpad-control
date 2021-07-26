@@ -67,6 +67,12 @@ legend
     font-weight: bold;
 }
 
+legend a,
+legend a:hover
+{
+    color: rgba(230, 186, 55, 1);
+}
+
 fieldset.unsaved legend
 {
     border: 1px solid rgba(230, 186, 55, 1);
@@ -118,17 +124,32 @@ fieldset .row-container:last-child .row:last-child .form-group
     margin-bottom: 0px;
 }
 
+.btn-primary,
+.btn-primary:focus
+{
+    border-color: rgba(0, 190, 245, 1);
+    background-color: rgba(0, 190, 245, 1);
+}
+
 .btn-outline-primary
 {
     border-color: rgba(0, 190, 245, 1);
     color: rgba(0, 190, 245, 1);
 }
 
-.btn-outline-primary:hover
+.btn-outline-primary:hover,
+.btn-primary:hover
 {
     border-color: rgba(0, 190, 245, 1);
     background-color: rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245, 0.4);
+}
+
+.btn-success,
+.btn-success:focus
+{
+    border-color: rgba(0, 205, 65, 1);
+    background-color: rgba(0, 205, 65, 1);
 }
 
 .btn-outline-success
@@ -147,6 +168,11 @@ fieldset .row-container:last-child .row:last-child .form-group
 .btn-outline-danger:hover
 {
     box-shadow: 0px 0px 5px 1px rgba(220, 53, 69, 0.4);
+}
+
+.btn-outline-warning:hover
+{
+    box-shadow: 0px 0px 5px 1px rgba(220, 201, 53, 0.4);
 }
 
 .input-group-append .btn-outline-primary,
@@ -678,4 +704,21 @@ fieldset .row-container:last-child .row:last-child .form-group
 
 @media screen and (min-width: 1600px) {
     
+}
+
+/* Virtual device */
+
+.virtual-device
+{
+    font-family: sans-serif;
+    border-radius: 10px;
+    background: #303030;
+    display: inline-block;
+    text-align: left;
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+
+    font-family: "Share Tech Mono";
+    padding: 25px;
+    width: 100%;
 }

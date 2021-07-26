@@ -11,16 +11,13 @@ class NanoKontrol extends React.Component
     {
         super(props);
 
-        this.state = {
-            selectedKey: null,
-            scene: this.props.scene
-        };
+        this.state = {};
     }
 
     onSelectKey(key)
     {
         let newSelectedKey = key;
-        if(this.state.selectedKey !== null && this.state.selectedKey.props.position === key.props.position) {
+        if(this.props.selectedKey !== null && this.props.selectedKey.props.position === key.props.position) {
             newSelectedKey = null;
         }
 
@@ -37,12 +34,12 @@ class NanoKontrol extends React.Component
     {
         let keys = [];
         
-        if(this.state.scene === null) {
+        if(this.props.scene === null) {
             return null;
         }
 
-        for(var i in this.state.scene.keys) {
-            let key = this.state.scene.keys[i];
+        for(var i in this.props.scene.keys) {
+            let key = this.props.scene.keys[i];
             
             if(key.device === this.props.device.id) {
                 if(position instanceof RegExp && key.position.element.match(position)) {
@@ -62,7 +59,7 @@ class NanoKontrol extends React.Component
 
     isKeySelected(position)
     {
-        return this.state.selectedKey && this.state.selectedKey.props.position.element === position;
+        return this.props.selectedKey && this.props.selectedKey.props.position.element === position;
     }
 
     getPositionObject(position)
@@ -85,7 +82,7 @@ class NanoKontrol extends React.Component
                     index={i}
                     key={i}
                     onClick={this.onSelectKey.bind(this)}
-                    selectedKey={this.state.selectedKey}
+                    selectedKey={this.props.selectedKey}
                     keyObjects={faderCurrentKeys} />
             );
         }
@@ -169,6 +166,7 @@ class NanoKontrol extends React.Component
 
                         <div className="col-2">
                             <Button
+                                device={this.props.device}
                                 keyObject={this.getKey("button:prev")}
                                 position={this.getPositionObject("button:prev")}
                                 selected={this.isKeySelected("button:prev")}

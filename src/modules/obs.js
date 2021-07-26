@@ -26,6 +26,8 @@ class OBSModule extends Module
         if(config) {
             logger.info("Connecting to OBS...");
 
+            let reqId = 0;
+
             this.obsConnection = new OBSWebSocket();
             this.obsConnection
                 .connect(config)
@@ -54,7 +56,6 @@ class OBSModule extends Module
                 // Fetch the mute status for each audio source to set mute buttons
                 .then(() => {
                     let reqs = [];
-                    let reqId = 0;
                     let audioSources = this.getAudioSources();
 
                     for(let i in audioSources) {
@@ -67,6 +68,7 @@ class OBSModule extends Module
                     
                     return this.obsConnection.send('ExecuteBatch', { requests: reqs });
                 })
+                // Trigger initial state for source mute status
                 .then((data) => {
                     for(let i in data.results) {
                         this.onSourceMuteUnmute(data.results[i]);
@@ -75,12 +77,36 @@ class OBSModule extends Module
                     // Trigger a scene re-render
                     this.manager.sceneManager.render();
                 })
+                // Fetch initial state for show/hide keys
+                .then(() => {
+                    let reqs = [];
+                    let keys = this.manager.sceneManager.getKeysByAction('obs_toggle_visible');
+        
+                    for(var i in keys) {
+                        let sceneName = keys[i].action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keys[i].action.scene;
+
+                        reqs.push({
+                            "message-id": "request-" + reqId,
+                            "request-type": "GetSceneItemProperties",
+                            "scene-name": sceneName,
+                            "item": {
+                                "name": keys[i].action.source
+                            } 
+                        })   
+                    }
+
+                    // return this.obsConnection.send('GetSceneItemProperties', );
+                })
+                .then((data) => {
+
+                })
                 .catch((e) => logger.error('Cannot connect to OBS: ' + e.error));
             
             // Binding events
             this.obsConnection
                 .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
-                .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this));
+                .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
+                .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this));
             
 
             setInterval(this.onAutoCropInterval.bind(this), 100);
@@ -114,6 +140,20 @@ class OBSModule extends Module
 
         if(sceneIndex != -1) {
             this.currentPreview = sceneIndex;
+        }
+    }
+
+    onSceneItemVisibilityChanged(data)
+    {
+        let keys = this.manager.sceneManager.getKeysByAction('obs_toggle_visible');
+        
+        for(let i in keys) {
+            let sceneName = keys[i].action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keys[i].action.scene;
+
+            if(data["scene-name"] == sceneName && data["item-name"] == keys[i].action.source) {
+                keys[i].status = data['item-visible'] ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+                this.manager.sceneManager.getCurrentScene().renderKey(keys[i], true);
+            }
         }
     }
 

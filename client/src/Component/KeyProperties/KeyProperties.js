@@ -5,6 +5,8 @@ import Launchpad from "../Device/Launchpad/Launchpad";
 import LaunchpadKeyProperties from "./LaunchpadKeyProperties";
 import NanoKontrol from "../Device/NanoKontrol/NanoKontrol";
 import NanoKontrolKeyProperties from "./NanoKontrolKeyProperties";
+import VirtualDevice from "../Device/VirtualDevice/VirtualDevice";
+import VirtualDeviceKeyProperties from "./VirtualDeviceKeyProperties";
 import { Button } from "react-bootstrap";
 
 class KeyProperties extends React.Component
@@ -36,6 +38,13 @@ class KeyProperties extends React.Component
                 case NanoKontrol.TYPE:
                     return (
                         <NanoKontrolKeyProperties
+                            currentKey={this.state.key}
+                            onChange={this.onSpecificTypeChange.bind(this)} />
+                    );
+
+                case VirtualDevice.TYPE:
+                    return (
+                        <VirtualDeviceKeyProperties
                             currentKey={this.state.key}
                             onChange={this.onSpecificTypeChange.bind(this)} />
                     );

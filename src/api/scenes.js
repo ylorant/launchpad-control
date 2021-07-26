@@ -15,6 +15,7 @@ class ScenesAPI
         router.post('/', this.postScene.bind(this));
         router.get('/current', this.getCurrentScene.bind(this));
         router.put('/current', this.putCurrentScene.bind(this));
+        router.post('/current/keypress', this.postPressKey.bind(this));
         router.get('/scene/:scene', this.getScene.bind(this));
         router.put('/scene/key', this.putKey.bind(this));
 
@@ -79,6 +80,25 @@ class ScenesAPI
         }
         
         scene.setKey(req.body.key);
+        res.json(true);
+    }
+
+    /** POST simulate a keypress */
+    postPressKey(req, res, next)
+    {
+        if(!req.body.key) {
+            res.json(false);
+        }
+
+        let scene = this.sceneManager.getScene(req.body.scene);
+
+        if(!scene) {
+            res.json(false);
+        }
+
+        scene.pressKey(req.body.key.device, req.body.key.position, true);
+        scene.releaseKey(req.body.key.device, req.body.key.position, true);
+
         res.json(true);
     }
 }

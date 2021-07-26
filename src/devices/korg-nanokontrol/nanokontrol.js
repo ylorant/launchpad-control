@@ -16,16 +16,16 @@ class NanoKontrol extends Device
     }
 
     /** Initializes the device interface. */
-    init(config) 
+    init(data) 
     {
-        super.init(config);
+        super.init(data);
 
         let defaultConfig = {
             inputPort: null,
             outputPort: null,
         };
 
-        this.config = _.extend(defaultConfig, config);
+        this.config = _.extend(defaultConfig, data.config);
         this.nanokontrolDevice = null;
 
         // Open the nanokontrol with config
@@ -73,7 +73,11 @@ class NanoKontrol extends Device
     /** Lights off everything */
     off()
     {
-        // TODO: implement
+        if(this.nanokontrolDevice) {
+            for(var i in this.nanokontrolDevice.buttons) {
+                this.light(i, 0);
+            }
+        }
     }
 
     /** 
@@ -106,6 +110,7 @@ class NanoKontrol extends Device
     onConnectionError(err)
     {
         logger.error("Cannot connect to NanoKontrol/2: " + err);
+        this.emit("ready");
     }
 
     /**

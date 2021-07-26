@@ -150,19 +150,19 @@ class SceneManager extends React.Component
                             <Modal.Title>Delete scene</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            Do you really want to delete this scene ?
+                            Do you really want to delete this scene ? This cannot be undone.
                         </Modal.Body>
                         <Modal.Footer>
-                        <Button 
-                            variant="outline-secondary" 
-                            onClick={() => this.setState({ deleteSceneConfirmPopupOpen: false })}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            variant="outline-danger"
-                            onClick={this.onConfirmDeleteScene.bind(this)}>
-                            Delete
-                        </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                onClick={() => this.setState({ deleteSceneConfirmPopupOpen: false })}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="outline-danger"
+                                onClick={this.onConfirmDeleteScene.bind(this)}>
+                                Delete
+                            </Button>
                         </Modal.Footer>
                     </Modal>
 

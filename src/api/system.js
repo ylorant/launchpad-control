@@ -30,6 +30,7 @@ class SystemAPI
         }
 
         this.config.set("scenes", this.sceneManager.export());
+        this.config.set("devices", this.deviceManager.export());
         this.config.save(req.body.path);
         res.json(true);
 
