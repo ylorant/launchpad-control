@@ -11,6 +11,7 @@ class VirtualDevice extends React.Component
         super(props);
 
         this.state = {
+            scene: this.props.scene,
             keys: [],
         };
     }
@@ -80,6 +81,27 @@ class VirtualDevice extends React.Component
     componentDidMount()
     {
         this.refreshKeys();
+    }
+
+    static getDerivedStateFromProps(props, state)
+    {
+        let out = {
+            scene: props.scene,
+            selectedKey: props.selectedKey || null
+        };
+
+        // Reset the selected key on scene change
+        if(props.scene.id !== state.scene.id) {
+            if(props.onSelectKey) {
+                props.onSelectKey(null);
+            }
+            
+            out.selectedKey = null;
+        } else if(props.selectedKey) {
+            out.selectedKey = props.selectedKey;
+        }
+
+        return out;
     }
 
     render()

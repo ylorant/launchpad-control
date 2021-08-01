@@ -9,7 +9,9 @@ class Launchpad extends React.Component
     {
         super(props);
 
-        this.state = {};
+        this.state = {
+            scene: this.props.scene
+        };
     }
 
     onSelectKey(key)
@@ -54,7 +56,7 @@ class Launchpad extends React.Component
         };
 
         // Reset the selected key on scene change
-        if(props.scene.id !== props.scene.id) {
+        if(props.scene.id !== state.scene.id) {
             if(props.onSelectKey) {
                 props.onSelectKey(null);
             }

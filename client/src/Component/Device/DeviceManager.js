@@ -186,8 +186,8 @@ class DeviceManager extends React.Component
                         
                             {!this.props.viewMode &&
                                 <div className="float-right">
-                                    <a href="/?view" target="_blank">[Show viewer]</a>
-                                    <a href={"/?view&device=" + this.state.currentDevice} target="_blank">[Show device viewer]</a>
+                                    <a href="/?view" target="_blank"rel="noopener noreferrer">[Show viewer]</a>
+                                    <a href={"/?view&device=" + this.state.currentDevice} target="_blank" rel="noopener noreferrer">[Show device viewer]</a>
                                 </div>
                             }
                         </legend>

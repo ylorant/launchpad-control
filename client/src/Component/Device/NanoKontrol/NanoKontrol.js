@@ -11,7 +11,9 @@ class NanoKontrol extends React.Component
     {
         super(props);
 
-        this.state = {};
+        this.state = {
+            scene: this.props.scene
+        };
     }
 
     onSelectKey(key)
@@ -67,6 +69,27 @@ class NanoKontrol extends React.Component
         return {
             element: position
         };
+    }
+
+    static getDerivedStateFromProps(props, state)
+    {
+        let out = {
+            scene: props.scene,
+            selectedKey: props.selectedKey || null
+        };
+
+        // Reset the selected key on scene change
+        if(props.scene.id !== state.scene.id) {
+            if(props.onSelectKey) {
+                props.onSelectKey(null);
+            }
+            
+            out.selectedKey = null;
+        } else if(props.selectedKey) {
+            out.selectedKey = props.selectedKey;
+        }
+
+        return out;
     }
 
     render()
