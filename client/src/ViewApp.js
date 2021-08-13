@@ -53,9 +53,7 @@ class ViewApp extends React.Component
 
     onRenderSceneReceived(ev)
     {
-        if(this.state.liveView) {
-            this.loadSceneData(ev.params.scene);
-        }
+        this.loadSceneData(ev.params.scene);
     }
 
     onSceneReceived(err, data, handlers)
