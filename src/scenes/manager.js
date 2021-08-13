@@ -157,6 +157,14 @@ class Manager
         this.startUpdates();
     }
 
+    renderKey(key)
+    {
+        // Render only if the key is currently shown
+        if(key.scene.id == this.currentScene) {
+            this.getScene(key.scene.id).renderKey(key);
+        }
+    }
+
     /** 
      * Updates the scene without re-rendering it completely (for animations and such) and without 
      * re-sending the render events.

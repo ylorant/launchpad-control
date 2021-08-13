@@ -12,13 +12,13 @@ class OBSModule extends Module
         this.obsConnection = null;
         let sceneList = [];
         let sourceList = [];
+        let sceneItemList = [];
         let typeList = {};
-        let sceneItemCache = {};
 
         this.sceneList = sceneList;
         this.sourceList = sourceList;
         this.typeList = typeList;
-        this.sceneItemCache = sceneItemCache;
+        this.sceneItemList = sceneItemList;
         this.autoCropInterval = null;
         this.jogwheelStatus = {};
         this.currentPreview = null;
@@ -53,55 +53,11 @@ class OBSModule extends Module
                     this.sceneList = sceneNamesList;
                     this.onPreviewSceneChanged(this.currentPreview);
                 })
-                // Fetch the mute status for each audio source to set mute buttons
-                .then(() => {
-                    let reqs = [];
-                    let audioSources = this.getAudioSources();
-
-                    for(let i in audioSources) {
-                        reqs.push({
-                            "message-id": "request-" + (++reqId),
-                            "request-type": "GetMute",
-                            "source": audioSources[i]
-                        });
-                    }
-                    
-                    return this.obsConnection.send('ExecuteBatch', { requests: reqs });
-                })
-                // Trigger initial state for source mute status
-                .then((data) => {
-                    for(let i in data.results) {
-                        this.onSourceMuteUnmute(data.results[i]);
-                    }
-
-                    // Trigger a scene re-render
-                    this.manager.sceneManager.render();
-                })
-                // Fetch initial state for show/hide keys
-                .then(() => {
-                    let reqs = [];
-                    let keys = this.manager.sceneManager.getKeysByAction('obs_toggle_visible');
-        
-                    for(var i in keys) {
-                        let sceneName = keys[i].action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keys[i].action.scene;
-
-                        reqs.push({
-                            "message-id": "request-" + reqId,
-                            "request-type": "GetSceneItemProperties",
-                            "scene-name": sceneName,
-                            "item": {
-                                "name": keys[i].action.source
-                            } 
-                        })   
-                    }
-
-                    // return this.obsConnection.send('GetSceneItemProperties', );
-                })
-                .then((data) => {
-
-                })
+                .then(() => this.fetchSceneItems())
+                .then(() => this.fetchAudioMuteStatus())
+                .then(() => this.refreshKeyStatus(true)) // Once everything is loaded, we initialize the key statuses
                 .catch((e) => logger.error('Cannot connect to OBS: ' + e.error));
-            
+
             // Binding events
             this.obsConnection
                 .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
@@ -118,19 +74,50 @@ class OBSModule extends Module
         this.obsConnection.disconnect();
     }
 
-    //// EVENTS ////
-
-    onSourceMuteUnmute(data)
+    refreshKeyStatus(forceUpdate = false)
     {
-        // Get all the keys having the mute toggle type
-        let keys = this.manager.sceneManager.getKeysByAction('obs_toggle_mute');
-        let sourceName = data.sourceName ? data.sourceName : (data.name ? data.name : null);
+        this.refreshKeyStatusByAction('obs_toggle_mute', 'muted', 'source', forceUpdate);
+        this.refreshKeyStatusByAction('obs_toggle_visible', 'properties.visible', 'sceneItem', forceUpdate);
+    }
+
+    refreshKeyStatusByAction(action, property, type, forceUpdate = false)
+    {
+        let keys = this.manager.sceneManager.getKeysByAction(action);
 
         for(let i in keys) {
-            if(keys[i].action.source == sourceName) {
-                keys[i].status = data.muted ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
-                this.manager.sceneManager.getCurrentScene().renderKey(keys[i], true);
+            let source = null;
+            switch(type) {
+                case "source":
+                    source = this.getSource(keys[i].action.source);
+                    break;
+                    case "sceneItem":
+                    source = this.getSceneItem(keys[i].action.scene, keys[i].action.source);
+                    break;
             }
+
+            if(source) {
+                let oldStatus = keys[i].status;
+                keys[i].status = _.get(source, property.split('.')) ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+                // Update the key only if it has changed
+                if(oldStatus != keys[i].status || forceUpdate) {
+                    this.manager.sceneManager.renderKey(keys[i]);
+                }
+            }
+        }
+    }
+
+    //// EVENTS ////
+
+    onSourceMuteUnmute(data, render = true)
+    {
+        let source = this.getSource(data.sourceName ? data.sourceName : (data.name ? data.name : null));
+
+        if(source) {
+            source.muted = data.muted;
+        }
+
+        if(render) {
+            this.refreshKeyStatus();
         }
     }
 
@@ -145,16 +132,13 @@ class OBSModule extends Module
 
     onSceneItemVisibilityChanged(data)
     {
-        let keys = this.manager.sceneManager.getKeysByAction('obs_toggle_visible');
-        
-        for(let i in keys) {
-            let sceneName = keys[i].action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keys[i].action.scene;
+        let sceneItem = this.getSceneItem(data.sceneName, data.itemName);
 
-            if(data["scene-name"] == sceneName && data["item-name"] == keys[i].action.source) {
-                keys[i].status = data['item-visible'] ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
-                this.manager.sceneManager.getCurrentScene().renderKey(keys[i], true);
-            }
+        if(sceneItem) {
+            sceneItem.properties.visible = data.itemVisible;
         }
+
+        this.refreshKeyStatus();
     }
 
     onAutoCropInterval()
@@ -196,6 +180,82 @@ class OBSModule extends Module
             this.sceneItemCache[sceneItemKey].crop[keyAction.direction] = cropAmount;
             this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
         }
+    }
+
+    //// FETCH FUNCTIONS ////
+
+    fetchSceneItems()
+    {
+        let reqs = [];
+        let reqId = 0;
+
+        // Scene items fetch for each scene
+        for(let i in this.sceneList) {
+            reqs.push({
+                "message-id": "request-" + (++reqId),
+                "request-type": "GetSceneItemList",
+                "sceneName": this.sceneList[i]
+            });
+        }
+
+        return this.obsConnection.send('ExecuteBatch', { requests: reqs })
+            .then((data) => {
+                this.sceneItemList = {};
+                reqs = [];
+
+                for(let i in data.results) {
+                    for(let j in data.results[i].sceneItems) {
+                        let sceneItem = data.results[i].sceneItems[j];
+                        sceneItem.sceneName = data.results[i].sceneName;
+
+                        this.sceneItemList[sceneItem.itemId] = sceneItem;
+
+                        reqs.push({
+                            "message-id": "request-" + (++reqId),
+                            "request-type": "GetSceneItemProperties",
+                            "scene-name": sceneItem.sceneName,
+                            "item": { id: sceneItem.itemId }
+                        });
+                    }
+                }
+
+                return this.obsConnection.send('ExecuteBatch', { requests: reqs });
+            })
+            .then((data) => {
+                for(let i in data.results) {
+                    let sceneItemProperties = data.results[i];
+
+                    if(this.sceneItemList[sceneItemProperties.itemId]) {
+                        this.sceneItemList[sceneItemProperties.itemId].properties = sceneItemProperties;
+                    }
+                }
+            });
+    }
+
+    /**
+     * Fetch the mute status for each audio source to set mute buttons
+     */
+    fetchAudioMuteStatus()
+    {
+        let reqs = [];
+        let audioSources = this.getAudioSources();
+        let reqId = 0;
+        
+        for(let i in audioSources) {
+            reqs.push({
+                "message-id": "request-" + (++reqId),
+                "request-type": "GetMute",
+                "source": audioSources[i]
+            });
+        }
+
+        
+        return this.obsConnection.send('ExecuteBatch', { requests: reqs })
+            .then((data) => {
+                for(let i in data.results) {
+                    this.onSourceMuteUnmute(data.results[i], false);
+                }
+            });
     }
 
     //// UTIL FUNCTIONS ////
@@ -274,6 +334,33 @@ class OBSModule extends Module
         }
 
         return output;
+    }
+
+    getSource(sourceName)
+    {
+        for(let i in this.sourceList) {
+            if(this.sourceList[i].name == sourceName) {
+                return this.sourceList[i];
+            }
+        }
+
+        return null;
+    }
+
+    getSceneItem(sceneName, sourceName)
+    {
+        for(let i in this.sceneItemList) {
+            if(this.sceneItemList[i].sceneName == sceneName && this.sceneItemList[i].sourceName == sourceName) {
+                return this.sceneItemList[i];
+            }
+        }
+
+        return null;
+    }
+
+    getAbsoluteSceneName(sceneName)
+    {
+        return sceneName == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : sceneName;
     }
 
     //// ACTIONS ////
@@ -568,8 +655,8 @@ class OBSModule extends Module
                     },
                 },
                 perform: function(key) {
-                    let sceneName = key.action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : key.action.scene;
-                    
+                    let sceneName = this.getAbsoluteSceneName(key.action.scene);
+
                     this.obsConnection.send('GetSceneItemProperties', { 'scene-name': sceneName, 'item': key.action.source })
                         .then(data => {
                             this.obsConnection.send('SetSceneItemRender', { 'scene-name': sceneName, 'source': key.action.source, render: !data.visible});
