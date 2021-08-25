@@ -2,6 +2,7 @@ const OBSWebSocket = require('obs-websocket-js');
 const Key = require('../scenes/key');
 const Module = require('./module');
 const _ = require('underscore');
+const { isEmpty } = require('underscore');
 
 class OBSModule extends Module
 {
@@ -19,14 +20,14 @@ class OBSModule extends Module
         this.sourceList = sourceList;
         this.typeList = typeList;
         this.sceneItemList = sceneItemList;
-        this.autoCropInterval = null;
+        this.jogwheelInterval = null;
         this.jogwheelStatus = {};
+        this.fadeInterval = null;
+        this.fadeStatus = {};
         this.currentPreview = null;
 
         if(config) {
             logger.info("Connecting to OBS...");
-
-            let reqId = 0;
 
             this.obsConnection = new OBSWebSocket();
             this.obsConnection
@@ -54,18 +55,17 @@ class OBSModule extends Module
                     this.onPreviewSceneChanged(this.currentPreview);
                 })
                 .then(() => this.fetchSceneItems())
-                .then(() => this.fetchAudioMuteStatus())
+                .then(() => this.fetchAudioStatus())
                 .then(() => this.refreshKeyStatus(true)) // Once everything is loaded, we initialize the key statuses
+                .then(() => logger.info("OBS module initialized"))
                 .catch((e) => logger.error('Cannot connect to OBS: ' + e.error));
 
             // Binding events
             this.obsConnection
                 .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
                 .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
-                .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this));
-            
-
-            setInterval(this.onAutoCropInterval.bind(this), 100);
+                .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this))
+                .on('SourceVolumeChanged', this.onSourceVolumeChanged.bind(this));
         }
     }
 
@@ -110,7 +110,7 @@ class OBSModule extends Module
 
     onSourceMuteUnmute(data, render = true)
     {
-        let source = this.getSource(data.sourceName ? data.sourceName : (data.name ? data.name : null));
+        let source = this.getSource(data.sourceName);
 
         if(source) {
             source.muted = data.muted;
@@ -141,44 +141,12 @@ class OBSModule extends Module
         this.refreshKeyStatus();
     }
 
-    onAutoCropInterval()
+    onSourceVolumeChanged(data)
     {
-        for(var i in this.jogwheelStatus) {
-            let sceneItemKey = this.jogwheelStatus[i].sceneItem;
-            let keyAction = this.jogwheelStatus[i].action;
-            let cropAmount = null;
+        let source = this.getSource(data.sourceName);
 
-            if(this.jogwheelStatus[i].value <= OBSModule.JOGWHEEL_LOCK_MIN) {
-                let boundary = null;
-
-                if(_.contains(["top", "bottom"], keyAction.direction)) {
-                    boundary = this.sceneItemCache[sceneItemKey].height;
-                } else {
-                    boundary = this.sceneItemCache[sceneItemKey].width;
-                }
-
-                cropAmount = Math.min(boundary, this.sceneItemCache[sceneItemKey].crop[keyAction.direction] + 5);
-            } else if(this.jogwheelStatus[i].value >= OBSModule.JOGWHEEL_LOCK_MAX) {
-                cropAmount = Math.max(0, this.sceneItemCache[sceneItemKey].crop[keyAction.direction] - 5);
-            } else {
-                continue; // Skip resize if the jogwheel isn't in extremes
-            }
-
-            // Skip crop if the amount didn't change
-            if(cropAmount == this.sceneItemCache[sceneItemKey].crop[keyAction.direction]) {
-                continue;
-            }
-
-            let sceneName = keyAction.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : keyAction.scene;
-            let itemPropertiesUpdate = {
-                'scene-name': sceneName,
-                'item': keyAction.source,
-                crop: {}
-            };
-
-            itemPropertiesUpdate.crop[keyAction.direction] = cropAmount;
-            this.sceneItemCache[sceneItemKey].crop[keyAction.direction] = cropAmount;
-            this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
+        if(source) {
+            source.volume = this.DBToRatio(data.volumeDb);
         }
     }
 
@@ -235,7 +203,7 @@ class OBSModule extends Module
     /**
      * Fetch the mute status for each audio source to set mute buttons
      */
-    fetchAudioMuteStatus()
+    fetchAudioStatus()
     {
         let reqs = [];
         let audioSources = this.getAudioSources();
@@ -244,8 +212,9 @@ class OBSModule extends Module
         for(let i in audioSources) {
             reqs.push({
                 "message-id": "request-" + (++reqId),
-                "request-type": "GetMute",
-                "source": audioSources[i]
+                "request-type": "GetVolume",
+                "source": audioSources[i],
+                "useDecibel": true
             });
         }
 
@@ -253,7 +222,12 @@ class OBSModule extends Module
         return this.obsConnection.send('ExecuteBatch', { requests: reqs })
             .then((data) => {
                 for(let i in data.results) {
-                    this.onSourceMuteUnmute(data.results[i], false);
+                    let source = this.getSource(data.results[i].name);
+
+                    if(source) {
+                        source.volume = this.DBToRatio(data.results[i].volume);
+                        source.muted = data.results[i].muted;
+                    }
                 }
             });
     }
@@ -297,6 +271,30 @@ class OBSModule extends Module
                 Math.pow((LOG_RANGE_DB + LOG_OFFSET_DB) / LOG_OFFSET_DB,
                     -ratio) +
             LOG_OFFSET_DB;
+    }
+
+    /**
+     * Converts a decibel value to its linear ratio, between 0 and 1.
+     * Formula taken from OBS source code to work linearly.
+     * 
+     * @param {float} db The db to convert to a ratio, between 0 and -100.
+     * @returns {float} The decibel value.
+     */
+    DBToRatio(db)
+    {
+        const LOG_OFFSET_DB = 6.0;
+        /* equals -log10f(LOG_OFFSET_DB) */
+        const LOG_OFFSET_VAL = -0.77815125038364363;
+        /* equals -log10f(-LOG_RANGE_DB + LOG_OFFSET_DB) */
+        const LOG_RANGE_VAL = -2.00860017176191756;
+        
+        if (db >= 0.0)
+            return 1.0;
+        else if (db <= -96.0)
+            return 0.0;
+
+        return (-Math.log10(-db + LOG_OFFSET_DB) - LOG_RANGE_VAL) /
+            (LOG_OFFSET_VAL - LOG_RANGE_VAL);
     }
 
     /**
@@ -363,6 +361,280 @@ class OBSModule extends Module
         return sceneName == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : sceneName;
     }
 
+    getCurrentPreview(index = false)
+    {
+        if(index) {
+            return this.currentPreview;
+        }
+
+        return this.sceneList[this.currentPreview];
+    }
+
+    //// OBS ACTIONS ////
+    
+    toggleSourceVisibility(scene, source)
+    {
+        let sceneName = this.getAbsoluteSceneName(scene);
+        let sceneItem = this.getSceneItem(sceneName, source);
+        
+        if(sceneItem) {
+            this.obsConnection.send('SetSceneItemRender', {
+                'scene-name': sceneName,
+                'source': source, 
+                render: !sceneItem.properties.visible
+            });
+        }
+    }
+
+    toggleSourceMute(source)
+    {
+        this.obsConnection.send('ToggleMute', {source: source});
+    }
+
+    setSourceVolume(source, volume)
+    {
+        this.obsConnection.send('SetVolume', {
+            source: source, 
+            volume: this.ratioToDB(volume),
+            useDecibel: true
+        });
+    }
+
+    changeScene(scene)
+    {
+        this.obsConnection.send("SetCurrentScene", {'scene-name': scene});
+    }
+
+    changePreviewScene(scene)
+    {
+        if(this.sceneList.includes(scene)) {
+            this.currentPreview = this.sceneList.indexOf(scene);
+            this.obsConnection.send("SetPreviewScene", {'scene-name': scene});
+        }
+    }
+
+    transitionScene()
+    {
+        this.obsConnection.send('TransitionToProgram');
+    }
+
+    cropSceneItem(scene, source, direction, amount)
+    {
+
+        // Handle current preview
+        let sceneName = this.getAbsoluteSceneName(scene);
+        let sceneItem = this.getSceneItem(sceneName, source);
+
+        if(!sceneItem) {
+            return false;
+        }
+
+        let itemPropertiesUpdate = {
+            'scene-name': sceneName,
+            'item': source,
+            crop: {}
+        };
+
+        sceneItem.properties.crop[direction] = amount;
+        itemPropertiesUpdate.crop[direction] = amount;
+
+        this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
+    }
+
+    //// VOLUME FADE ////
+
+    fadeVolumeStart(source, direction)
+    {
+        // Cancel an already happening fade if needed
+        if(this.fadeStatus[source]) {
+            this.fadeVolumeStop(this.fadeStatus[source]);
+        }
+
+        this.fadeStatus[source] = {
+            source: source,
+            direction: direction
+        };
+
+        if(!this.fadeInterval) {
+            this.fadeInterval = setInterval(this.fadeVolumeTick.bind(this), 50);
+        }
+    }
+
+    fadeVolumeStop(source)
+    {
+        if(!this.fadeStatus[source]) {
+            return false;
+        }
+
+        delete this.fadeStatus[source];
+
+        if(isEmpty(this.fadeStatus) && this.fadeInterval) {
+            clearInterval(this.fadeInterval);
+        }
+    }
+
+    fadeVolumeTick()
+    {
+        for(let i in this.fadeStatus) {
+            let source = this.getSource(this.fadeStatus[i].source);
+            
+            switch(this.fadeStatus[i].direction) {
+                case "in":
+                    source.volume = Math.min(source.volume + 0.025, 1);
+                    break;
+                
+                case "out":
+                    source.volume = Math.max(source.volume - 0.025, 0);
+                    break;
+            }
+
+            this.setSourceVolume(source.name, source.volume);
+
+            if(source.volume <= 0 || source.volume >= 1) {
+                this.fadeVolumeStop(source.name);
+            }
+        }
+    }
+
+    //// JOGWHEEL CONTROL ////
+
+    jogwheelGetKeyHash(key)
+    {
+        return JSON.stringify(key.position);
+    }
+
+    jogwheelStart(key, action, target, actionParameters, initialValue, increment)
+    {
+        let keyPos = this.jogwheelGetKeyHash(key);
+
+        this.jogwheelStatus[keyPos] = {
+            action: action,
+            target: target,
+            actionParameters: actionParameters,
+            value: initialValue,
+            locked: false,
+            positionLock: 0,
+            increment: increment
+        };
+    }
+
+    jogwheelMove(key, value) {
+        let keyPos = this.jogwheelGetKeyHash(key);
+        
+        if(!this.jogwheelStatus[keyPos]) {
+            return false;
+        }
+        
+        let diff = value - this.jogwheelStatus[keyPos].value;
+        this.jogwheelStatus[keyPos].value = value;
+        let js = this.jogwheelStatus[keyPos];
+        this.jogwheelAction(js.action, js.target, js.actionParameters, diff);
+    }
+
+    jogwheelLock(key, positionLock)
+    {
+        let keyPos = this.jogwheelGetKeyHash(key);
+
+        if(!this.jogwheelStatus[keyPos]) {
+            return false;
+        }
+
+        this.jogwheelStatus[keyPos].locked = true;
+        this.jogwheelStatus[keyPos].positionLock = positionLock;
+        console.log("position lock", keyPos, positionLock);
+
+        if(isEmpty(this.jogwheelInterval)) {
+            this.jogwheelInterval = setInterval(this.onJogwheelInterval.bind(this), 100);
+        }
+    }
+
+    jogwheelUnlock(key, keyPos = null)
+    {
+        if(!keyPos) {
+            keyPos = this.jogwheelGetKeyHash(key);
+        }
+
+        if(!this.jogwheelStatus[keyPos] || !this.jogwheelStatus[keyPos].locked) {
+            return false;
+        }
+
+        this.jogwheelStatus[keyPos].locked = false;
+
+        // Remove the interval if no locked jogs are present anymore
+        let hasLocked = false;
+
+        for(let i in this.jogwheelStatus) {
+            if(this.jogwheelStatus[i].locked) {
+                hasLocked = true;
+                break;
+            }
+        }
+
+        if(!isEmpty(this.jogwheelInterval) && !hasLocked) {
+            clearInterval(this.jogwheelInterval);
+            this.jogwheelInterval = null;
+        }
+    }
+
+    jogwheelEnabled(key)
+    {
+        let keyPos = this.jogwheelGetKeyHash(key);
+        
+        if(this.jogwheelStatus[keyPos]) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    jogwheelStop(key)
+    {
+        let keyPos = this.jogwheelGetKeyHash(key);
+
+        if(this.jogwheelStatus[keyPos]) {
+            delete this.jogwheelStatus[key];
+
+            if(isEmpty(this.jogwheelStatus)) {
+                clearInterval(this.jogwheelInterval);
+                this.jogwheelInterval = null;
+            }
+        }
+    }
+
+    jogwheelAction(action, target, actionParameters, value)
+    {
+        switch(action) {
+            case "crop":
+                let sceneName = this.getAbsoluteSceneName(target.scene);
+                let sceneItem = this.getSceneItem(sceneName, target.source);
+
+                let cropAmount = Math.max(0, sceneItem.properties.crop[actionParameters.direction] + value);
+
+                // Update only if the new crop is updated relative to the old one
+                if(sceneItem.properties.crop[actionParameters.direction] != cropAmount) {
+                    this.cropSceneItem(sceneName, target.source, actionParameters.direction, cropAmount);
+                    return true;
+                }
+        }
+
+        return false;
+    }
+
+    onJogwheelInterval()
+    {
+        for(let i in this.jogwheelStatus) {
+            if(this.jogwheelStatus[i].locked) {
+                let js = this.jogwheelStatus[i];
+                let updated = this.jogwheelAction(js.action, js.target, js.actionParameters, js.increment * js.positionLock);
+
+                // Disable the lock if the update failed
+                if(!updated) {
+                    this.jogwheelUnlock(null, i);
+                }
+            }
+        }
+    }
+
     //// ACTIONS ////
 
     getActions()
@@ -380,7 +652,7 @@ class OBSModule extends Module
                     }
                 },
                 perform: function(key) {
-                    this.obsConnection.send("SetCurrentScene", {'scene-name': key.action.scene});
+                    this.changeScene(key.action.scene);
                 }
             },
 
@@ -396,12 +668,7 @@ class OBSModule extends Module
                     }
                 },
                 perform: function(key) {
-
-                    this.obsConnection.send('SetVolume', {
-                        source: key.action.source, 
-                        volume: this.ratioToDB(key.value / 127.0),
-                        useDecibel: true
-                    });
+                    this.setSourceVolume(key.action.source, key.value / 127.0);
                 }
             },
 
@@ -417,7 +684,7 @@ class OBSModule extends Module
                     }
                 },
                 perform: function(key) {
-                    this.obsConnection.send('ToggleMute', {source: key.action.source});
+                    this.toggleSourceMute(key.action.source);
                 }
             },
 
@@ -427,22 +694,34 @@ class OBSModule extends Module
                     scene: {
                         label: "Target scene",
                         type: "choice",
-                        values: {
-                            previous: "Previous scene",
-                            next: "Next scene"
+                        values: function() {
+                            let sceneList = _.clone(this.sceneList);
+                            sceneList.unshift("Previous scene");
+                            sceneList.unshift("Next scene");
+
+                            return sceneList;
                         }
                     }
                 },
                 perform: function(key) {
-                    this.currentPreview += key.action.scene == "previous" ? -1 : 1;
-                    
-                    if(this.currentPreview >= this.sceneList.length) {
-                        this.currentPreview = 0;
-                    } else if(this.currentPreview < 0) {
-                        this.currentPreview = this.sceneList.length - 1;
+                    let targetScene = null;
+                    let targetSceneIndex = this.currentPreview;
+
+                    if(['Previous scene', 'Next scene'].includes(key.action.scene)) {
+                        targetSceneIndex += key.action.scene == "Previous scene" ? -1 : 1;
+                        
+                        if(targetSceneIndex >= this.sceneList.length) {
+                            targetSceneIndex = 0;
+                        } else if(targetSceneIndex < 0) {
+                            targetSceneIndex = this.sceneList.length - 1;
+                        }
+
+                        targetScene = this.sceneList[targetSceneIndex];
+                    } else {
+                        targetScene = key.action.scene;
                     }
 
-                    this.obsConnection.send('SetPreviewScene', {"scene-name": this.sceneList[this.currentPreview]});
+                    this.changePreviewScene(targetScene);
                 }
             },
 
@@ -450,7 +729,7 @@ class OBSModule extends Module
                 label: "OBS: Transition to program",
                 parameters: {},
                 perform: function(key) {
-                    this.obsConnection.send('TransitionToProgram');
+                    this.transitionScene();
                 }
             },
             
@@ -496,6 +775,12 @@ class OBSModule extends Module
                         }
                     },
 
+                    increment: {
+                        label: "Lock increment",
+                        type: "number",
+                        context: "analog"
+                    },
+
                     amount: {
                         label: "Crop amount",
                         type: "number",
@@ -506,129 +791,45 @@ class OBSModule extends Module
                     // TODO: Refactor this to avoid repetitions
                     // Analog handling (slider/rotary)
                     if(key.value != null) {
-                        // Handle current preview
-                        let sceneName = key.action.scene == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : key.action.scene;
-                        let sceneItemKey = sceneName + "_" + key.action.source;
-                        
                         switch(key.action.behavior) {
                             case "jogwheel":
-                                let positionKey = JSON.stringify(key.position);
+                                let target = {scene: key.action.scene, source: key.action.source};
+                                let params = { direction: key.action.direction };
 
-                                if(!this.jogwheelStatus[positionKey]) {
-                                    this.jogwheelStatus[positionKey] = {
-                                        sceneItem: sceneItemKey,
-                                        action: key.action,
-                                        value: key.value
-                                    };
-                                } else if(key.value > OBSModule.JOGWHEEL_LOCK_MIN && key.value < OBSModule.JOGWHEEL_LOCK_MAX) {
-                                    let diff = this.jogwheelStatus[positionKey].value - key.value;
-
-                                    let performSceneItemCrop = function() {
-                                        let cropAmount = Math.max(0, this.sceneItemCache[sceneItemKey].crop[key.action.direction] + diff);
-
-                                        let itemPropertiesUpdate = {
-                                            'scene-name': sceneName,
-                                            'item': key.action.source,
-                                            crop: {}
-                                        };
-
-                                        itemPropertiesUpdate.crop[key.action.direction] = cropAmount;
-                                        this.sceneItemCache[sceneItemKey].crop[key.action.direction] = cropAmount;
-                                        this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
-                                    };
-
-                                    if(!this.sceneItemCache[sceneItemKey]) {
-                                        // Fetch data in cache then perform the crop
-                                        this.obsConnection
-                                            .send('GetSceneItemProperties', { 'scene-name': sceneName, item: key.action.source })
-                                            .then((data) => {
-                                                this.sceneItemCache[sceneItemKey] = data;
-                                                performSceneItemCrop.apply(this);
-                                            });
-                                    } else {
-                                        performSceneItemCrop.apply(this);
-                                    }
-                                } else if(!this.autoCropInterval) {
-                                    if(!this.sceneItemCache[sceneItemKey]) {
-                                        // Fetch data in cache then perform the crop
-                                        this.obsConnection
-                                            .send('GetSceneItemProperties', { 'scene-name': sceneName, item: key.action.source })
-                                            .then((data) => {
-                                                this.sceneItemCache[sceneItemKey] = data;
-                                            });
-                                    }
+                                if(!this.jogwheelEnabled(key)) {
+                                    this.jogwheelStart(key, "crop", target, params, key.value, key.action.increment);
                                 }
-
-                                this.jogwheelStatus[positionKey].value = key.value;
+                                
+                                this.jogwheelMove(key, key.value);
+                                
+                                if(key.value > OBSModule.JOGWHEEL_LOCK_MIN && key.value < OBSModule.JOGWHEEL_LOCK_MAX) {
+                                    this.jogwheelUnlock(key);
+                                } else {
+                                    this.jogwheelLock(key, (key.value == OBSModule.JOGWHEEL_LOCK_MIN ? -1 : 1));
+                                }
                                 break;
                                 
                             case "absolute":
                                 let cropPercent = key.value / 127.0;
+                                let sceneName = this.getAbsoluteSceneName(key.action.scene);
+                                let sceneItem = this.getSceneItem(sceneName, key.action.source);
+                                let cropPixels = 0;
 
-                                let performSceneItemCrop = function() {
-                                    let sceneItem = this.sceneItemCache[sceneItemKey];
-                                    let cropPixels = 0;
-                                    
-                                    if(_.contains(["top", "bottom"], key.action.direction)) {
-                                        cropPixels = sceneItem.height * (1.0 - cropPercent);
-                                    } else {
-                                        cropPixels = sceneItem.width * (1.0 - cropPercent);
-                                    }
-
-                                    let itemPropertiesUpdate = {
-                                        'scene-name': key.action.scene,
-                                        'item': key.action.source,
-                                        crop: {}
-                                    };
-                                    itemPropertiesUpdate.crop[key.action.direction] = Math.round(cropPixels);
-
-                                    this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
-                                };
-
-                                // Check if there is already a cache setting for the required scene item
-                                if(this.sceneItemCache[sceneItemKey]) {
-                                    performSceneItemCrop.apply(this);
+                                if(_.contains(["top", "bottom"], key.action.direction)) {
+                                    cropPixels = sceneItem.properties.sourceHeight * (1.0 - cropPercent);
                                 } else {
-                                    // Fetch data in cache then perform the crop
-                                    this.obsConnection
-                                        .send('GetSceneItemProperties', { 'scene-name': key.action.scene, item: key.action.source })
-                                        .then((data) => {
-                                            this.sceneItemCache[sceneItemKey] = data;
-                                            performSceneItemCrop.apply(this);
-                                        });
+                                    cropPixels = sceneItem.properties.sourceWidth * (1.0 - cropPercent);
                                 }
 
+                                this.cropSceneItem(sceneName, key.action.source, key.action.direction, cropPixels);
                                 break;
                         }
                     } else { // Digital handling (button)
-                        let sceneItemKey = key.action.scene + "_" + key.action.source;
+                        let sceneName = this.getAbsoluteSceneName(key.action.scene);
+                        let sceneItem = this.getSceneItem(sceneName, key.action.source);
+                        let cropAmount = sceneItem.properties.crop[key.action.direction] + parseInt(key.action.amount);
 
-                        let performSceneItemCrop = function() {
-                            let cropAmount = this.sceneItemCache[sceneItemKey].crop[key.action.direction] + parseInt(key.action.amount);
-
-                            let itemPropertiesUpdate = {
-                                'scene-name': key.action.scene,
-                                'item': key.action.source,
-                                crop: {}
-                            };
-                            itemPropertiesUpdate.crop[key.action.direction] = cropAmount;
-                            this.sceneItemCache[sceneItemKey].crop[key.action.direction] = cropAmount;
-
-                            this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
-                        }
-
-                        // Check if there is already a cache setting for the required scene item
-                        if(this.sceneItemCache[sceneItemKey]) {
-                            performSceneItemCrop.apply(this);
-                        } else {
-                            // Fetch data in cache then perform the crop
-                            this.obsConnection
-                                .send('GetSceneItemProperties', { 'scene-name': key.action.scene, item: key.action.source })
-                                .then((data) => {
-                                    this.sceneItemCache[sceneItemKey] = data;
-                                    performSceneItemCrop.apply(this);
-                                });
-                        }
+                        this.cropSceneItem(key.action.scene, key.action.source, key.action.direction, cropAmount);
                     }
                 }
             },
@@ -655,12 +856,36 @@ class OBSModule extends Module
                     },
                 },
                 perform: function(key) {
-                    let sceneName = this.getAbsoluteSceneName(key.action.scene);
+                    this.toggleSourceVisibility(key.action.scene, key.action.source);
+                }
+            },
 
-                    this.obsConnection.send('GetSceneItemProperties', { 'scene-name': sceneName, 'item': key.action.source })
-                        .then(data => {
-                            this.obsConnection.send('SetSceneItemRender', { 'scene-name': sceneName, 'source': key.action.source, render: !data.visible});
-                        });
+            obs_fade_volume: {
+                label: "OBS: Fade volume",
+                parameters: {
+                    source: {
+                        label: "Source",
+                        type: "choice",
+                        values: function() {
+                            return this.getAudioSources();
+                        }
+                    },
+                    sourceToMute: {
+                        label: "Source to mute",
+                        type: "choice",
+                        values: function() {
+                            return this.getAudioSources();
+                        }
+                    }
+                },
+                perform: function(key) {
+                    if(key.action.source) {
+                        this.fadeVolumeStart(key.action.source, "in");
+                    }
+
+                    if(key.action.sourceToMute) {
+                        this.fadeVolumeStart(key.action.sourceToMute, "out");
+                    }
                 }
             }
         };
