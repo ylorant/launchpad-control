@@ -77,10 +77,11 @@ class OBSModule extends Module
     refreshKeyStatus(forceUpdate = false)
     {
         this.refreshKeyStatusByAction('obs_toggle_mute', 'muted', 'source', forceUpdate);
+        this.refreshKeyStatusByAction('obs_fade_volume', 'volume', 'source', forceUpdate);
         this.refreshKeyStatusByAction('obs_toggle_visible', 'properties.visible', 'sceneItem', forceUpdate);
     }
 
-    refreshKeyStatusByAction(action, property, type, forceUpdate = false)
+    refreshKeyStatusByAction(action, property, type, forceUpdate = false, inverted = false)
     {
         let keys = this.manager.sceneManager.getKeysByAction(action);
 
@@ -97,7 +98,14 @@ class OBSModule extends Module
 
             if(source) {
                 let oldStatus = keys[i].status;
-                keys[i].status = _.get(source, property.split('.')) ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+                let keyActive = _.get(source, property.split('.')) ? true : false;
+
+                if(inverted) {
+                   keyActive = !keyActive; 
+                }
+
+                keys[i].status = keyActive ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+
                 // Update the key only if it has changed
                 if(oldStatus != keys[i].status || forceUpdate) {
                     this.manager.sceneManager.renderKey(keys[i]);
@@ -148,6 +156,8 @@ class OBSModule extends Module
         if(source) {
             source.volume = this.DBToRatio(data.volumeDb);
         }
+
+        this.refreshKeyStatus();
     }
 
     //// FETCH FUNCTIONS ////
@@ -445,6 +455,7 @@ class OBSModule extends Module
 
     fadeVolumeStart(source, direction)
     {
+
         // Cancel an already happening fade if needed
         if(this.fadeStatus[source]) {
             this.fadeVolumeStop(this.fadeStatus[source]);
@@ -470,6 +481,7 @@ class OBSModule extends Module
 
         if(isEmpty(this.fadeStatus) && this.fadeInterval) {
             clearInterval(this.fadeInterval);
+            this.fadeInterval = null;
         }
     }
 
@@ -541,7 +553,6 @@ class OBSModule extends Module
 
         this.jogwheelStatus[keyPos].locked = true;
         this.jogwheelStatus[keyPos].positionLock = positionLock;
-        console.log("position lock", keyPos, positionLock);
 
         if(isEmpty(this.jogwheelInterval)) {
             this.jogwheelInterval = setInterval(this.onJogwheelInterval.bind(this), 100);
@@ -870,21 +881,44 @@ class OBSModule extends Module
                             return this.getAudioSources();
                         }
                     },
-                    sourceToMute: {
-                        label: "Source to mute",
+
+                    crossfadeSource: {
+                        label: "Crossfade source",
                         type: "choice",
                         values: function() {
                             return this.getAudioSources();
                         }
+                    },
+
+                    behavior: {
+                        label: "Behavior",
+                        type: "choice",
+                        values: {
+                            "one-way": "One way",
+                            "toggle": "Toggle"
+                        }
                     }
                 },
                 perform: function(key) {
-                    if(key.action.source) {
-                        this.fadeVolumeStart(key.action.source, "in");
+                    let sourceDir = "in";
+                    let crossfadeSourceDir = "out";
+
+                    // In case of a toggle behavior, check to reverse direction depending on source volume
+                    if(key.action.behavior == "toggle") {
+                        let source = this.getSource(key.action.source);
+
+                        if(source.volume !== 0) {
+                            sourceDir = "out";
+                            crossfadeSourceDir = "in";
+                        }
                     }
 
-                    if(key.action.sourceToMute) {
-                        this.fadeVolumeStart(key.action.sourceToMute, "out");
+                    if(key.action.source) {
+                        this.fadeVolumeStart(key.action.source, sourceDir);
+                    }
+
+                    if(key.action.crossfadeSource) {
+                        this.fadeVolumeStart(key.action.crossfadeSource, crossfadeSourceDir);
                     }
                 }
             }
