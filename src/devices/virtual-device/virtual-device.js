@@ -23,11 +23,13 @@ class VirtualDevice extends Device
         };
         
         this.config = _.extend(defaultConfig, data.config);
+        this.open();
     }
 
     /** Connects to the device. */
     open() 
     {
+        logger.info("Virtual device initialized.");
         this.emit('ready');
     }
 
