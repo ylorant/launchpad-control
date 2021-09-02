@@ -151,7 +151,7 @@ class Launchpad extends Device
 
     light(position, color)
     {
-        if(!position.x || !position.y) {
+        if(!(x in position) || !(y in position)) {
             return false;
         }
 
