@@ -382,6 +382,24 @@ class OBSModule extends Module
         return sceneItemList;
     }
 
+    getSceneItemSources(sceneName = null)
+    {
+        let output = [];
+
+        for(let i in this.sceneItemList) {
+            let sceneItem = this.sceneItemList[i];
+            if(sceneName !== null && sceneItem.sceneName !== sceneName) {
+                continue;
+            }
+
+            if(!_.contains(output, sceneItem.sourceName)) {
+                output.push(sceneItem.sourceName);
+            }
+        }
+
+        return output;
+    }
+
     getAbsoluteSceneName(sceneName)
     {
         return sceneName == OBSModule.CURRENT_PREVIEW ? this.sceneList[this.currentPreview] : sceneName;
@@ -782,7 +800,7 @@ class OBSModule extends Module
                         label: "Target source",
                         type: "choice",
                         values: function() {
-                            return this.getVideoSources();
+                            return this.getSceneItemSources();
                         }
                     },
                     
