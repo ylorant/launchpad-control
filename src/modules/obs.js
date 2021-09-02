@@ -408,8 +408,6 @@ class OBSModule extends Module
             visibility = !sceneItem.properties.visible;
         }
 
-        console.log(sceneItem, visibility);
-        
         if(sceneItem) {
             this.obsConnection.send('SetSceneItemRender', {
                 'scene-name': sceneName,
