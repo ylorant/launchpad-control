@@ -427,12 +427,32 @@ class OBSModule extends Module
         }
 
         if(sceneItem) {
-            this.obsConnection.send('SetSceneItemRender', {
+            return this.obsConnection.send('SetSceneItemRender', {
                 'scene-name': sceneName,
                 'source': source, 
                 render: visibility
             });
         }
+    }
+
+    setSceneSourcesVisibility(scene, visible)
+    {
+        let sceneName = this.getAbsoluteSceneName(scene);
+        let sceneItems = this.getSceneItemListForScene(sceneName);
+        let reqs = [];
+        let reqId = 0;
+
+        for(let i in sceneItems) {
+            reqs.push({
+                "message-id": "request-" + (++reqId),
+                "request-type": "SetSceneItemRender",
+                "scene-name": sceneName,
+                "source": sceneItems[i].sourceName,
+                "render": visible
+            });
+        }
+
+        return this.obsConnection.send('ExecuteBatch', { requests: reqs });
     }
 
     toggleSourceMute(source)
@@ -916,13 +936,10 @@ class OBSModule extends Module
                 },
                 perform: function(key) {
                     if(key.action.hideOtherSources && key.action.hideOtherSources == "yes") {
-                        let sceneItems = this.getSceneItemListForScene(key.action.scene);
-
-                        for(let i in sceneItems) {
-                            this.toggleSourceVisibility(key.action.scene, sceneItems[i].sourceName, false);
-                        }
-
-                        this.toggleSourceVisibility(key.action.scene, key.action.source, true);
+                      this.setSceneSourcesVisibility(key.action.scene, false)
+                        .then(() => {
+                            this.toggleSourceVisibility(key.action.scene, key.action.source, true);
+                        });
                     } else {
                         this.toggleSourceVisibility(key.action.scene, key.action.source);
                     }
