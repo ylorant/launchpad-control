@@ -512,18 +512,27 @@ class OBSModule extends Module
 
     //// VOLUME FADE ////
 
-    fadeVolumeStart(source, direction)
+    fadeVolumeStart(sourceName, target = null)
     {
 
         // Cancel an already happening fade if needed
-        if(this.fadeStatus[source]) {
-            this.fadeVolumeStop(this.fadeStatus[source]);
+        if(this.fadeStatus[sourceName]) {
+            this.fadeVolumeStop(this.fadeStatus[sourceName]);
         }
 
-        this.fadeStatus[source] = {
-            source: source,
-            direction: direction
+        // Compute stepping
+        let source = this.getSource(sourceName);
+        let sourceVolume = source.volume;
+        let targetVolume = target != null ? target : (source.volume > 0.5 ? 0 : 1);
+
+        this.fadeStatus[sourceName] = {
+            source: sourceName,
+            // direction: direction,
+            target: targetVolume,
+            increment: (targetVolume - sourceVolume) * 0.025
         };
+
+        logger.info("Starting fade on " + sourceName);
 
         if(!this.fadeInterval) {
             this.fadeInterval = setInterval(this.fadeVolumeTick.bind(this), 50);
@@ -548,20 +557,15 @@ class OBSModule extends Module
     {
         for(let i in this.fadeStatus) {
             let source = this.getSource(this.fadeStatus[i].source);
+            let increment = this.fadeStatus[i].increment;
+            let target = this.fadeStatus[i].target;
             
-            switch(this.fadeStatus[i].direction) {
-                case "in":
-                    source.volume = Math.min(source.volume + 0.025, 1);
-                    break;
-                
-                case "out":
-                    source.volume = Math.max(source.volume - 0.025, 0);
-                    break;
-            }
+            source.volume = Math.min(source.volume + increment, 1);
 
             this.setSourceVolume(source.name, source.volume);
 
-            if(source.volume <= 0 || source.volume >= 1) {
+            if((increment < 0 && source.volume <= target) || (increment > 0 && source.volume >= target)) {
+                logger.info("Stopping volume fade on " + this.fadeStatus[i].source);
                 this.fadeVolumeStop(source.name);
             }
         }
@@ -966,6 +970,16 @@ class OBSModule extends Module
                         }
                     },
 
+                    volume: {
+                        label: "Target volume",
+                        type: "number"
+                    },
+
+                    crossfadeVolume: {
+                        label: "Crossfade target volume",
+                        type: "number"
+                    },
+
                     behavior: {
                         label: "Behavior",
                         type: "choice",
@@ -976,25 +990,25 @@ class OBSModule extends Module
                     }
                 },
                 perform: function(key) {
-                    let sourceDir = "in";
-                    let crossfadeSourceDir = "out";
+                    let sourceTargetVol = key.action.volume ? key.action.volume : 100;
+                    let crossfadeSourceTargetVol = 0;
 
                     // In case of a toggle behavior, check to reverse direction depending on source volume
                     if(key.action.behavior == "toggle") {
                         let source = this.getSource(key.action.source);
 
                         if(source.volume !== 0) {
-                            sourceDir = "out";
-                            crossfadeSourceDir = "in";
+                            sourceTargetVol = 0;
+                            crossfadeSourceTargetVol = key.action.crossfadeVolume ? key.action.crossfadeVolume : 100;
                         }
                     }
 
                     if(key.action.source) {
-                        this.fadeVolumeStart(key.action.source, sourceDir);
+                        this.fadeVolumeStart(key.action.source, sourceTargetVol / 100);
                     }
 
                     if(key.action.crossfadeSource) {
-                        this.fadeVolumeStart(key.action.crossfadeSource, crossfadeSourceDir);
+                        this.fadeVolumeStart(key.action.crossfadeSource, crossfadeSourceTargetVol / 100);
                     }
                 }
             }
