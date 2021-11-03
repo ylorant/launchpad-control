@@ -11,6 +11,7 @@ class OBSModule extends Module
     init(config)
     {
         this.obsConnection = null;
+        
         let sceneList = [];
         let sourceList = [];
         let sceneItemList = [];
@@ -25,53 +26,63 @@ class OBSModule extends Module
         this.fadeInterval = null;
         this.fadeStatus = {};
         this.currentPreview = null;
+        this.config = config;
 
-        if(config) {
-            logger.info("Connecting to OBS...");
-
-            this.obsConnection = new OBSWebSocket();
-            this.obsConnection
-                .connect(config)
-                // Fetching data
-                .then(() => this.fetchData('GetSceneList', 'scenes', 'sceneList'))
-                .then(() => this.fetchData('GetSourcesList', 'sources', 'sourceList'))
-                .then(() => this.fetchData('GetSourceTypesList', 'types', 'typeList'))
-                .then(() => this.fetchData('GetPreviewScene', 'name', 'currentPreview'))
-                // Format data that needs to be formatted
-                .then(() => {
-                    let typeListIndexed = {};
-                    let sceneNamesList = [];
-                    
-                    for(let i in this.typeList) {
-                        typeListIndexed[this.typeList[i].typeId] = this.typeList[i];
-                    }
-
-                    for(let i in this.sceneList) {
-                        sceneNamesList.push(this.sceneList[i].name);
-                    }
-
-                    this.typeList = typeListIndexed;
-                    this.sceneList = sceneNamesList;
-                    this.onPreviewSceneChanged(this.currentPreview);
-                })
-                .then(() => this.fetchSceneItems())
-                .then(() => this.fetchAudioStatus())
-                .then(() => this.refreshKeyStatus(true)) // Once everything is loaded, we initialize the key statuses
-                .then(() => logger.info("OBS module initialized"))
-                .catch((e) => logger.error('Cannot connect to OBS: ' + e.error));
-
-            // Binding events
-            this.obsConnection
-                .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
-                .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
-                .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this))
-                .on('SourceVolumeChanged', this.onSourceVolumeChanged.bind(this));
+        if(this.config) {
+            this.connect();
         }
     }
 
     shutdown()
     {
         this.obsConnection.disconnect();
+    }
+
+    connect()
+    {
+        logger.info("Connecting to OBS...");
+        this.obsConnection = new OBSWebSocket();
+        this.obsConnection
+        .connect(this.config)
+            // Binding events
+            .then(() => {
+                this.obsConnection
+                    .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
+                    .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
+                    .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this))
+                    .on('SourceVolumeChanged', this.onSourceVolumeChanged.bind(this));
+            })
+            // Fetching data
+            .then(() => this.fetchData('GetSceneList', 'scenes', 'sceneList'))
+            .then(() => this.fetchData('GetSourcesList', 'sources', 'sourceList'))
+            .then(() => this.fetchData('GetSourceTypesList', 'types', 'typeList'))
+            .then(() => this.fetchData('GetPreviewScene', 'name', 'currentPreview'))
+            // Format data that needs to be formatted
+            .then(() => {
+                let typeListIndexed = {};
+                let sceneNamesList = [];
+                
+                for(let i in this.typeList) {
+                    typeListIndexed[this.typeList[i].typeId] = this.typeList[i];
+                }
+
+                for(let i in this.sceneList) {
+                    sceneNamesList.push(this.sceneList[i].name);
+                }
+
+                this.typeList = typeListIndexed;
+                this.sceneList = sceneNamesList;
+                this.onPreviewSceneChanged(this.currentPreview);
+            })
+            .then(() => this.fetchSceneItems())
+            .then(() => this.fetchAudioStatus())
+            .then(() => this.refreshKeyStatus(true)) // Once everything is loaded, we initialize the key statuses
+            .then(() => logger.info("OBS module initialized"))
+            .catch((e) => {
+                logger.error('Cannot connect to OBS: ' + e.error);
+                logger.info('Trying to reconnect in 5s...');
+                setTimeout(this.connect.bind(this), 5000);
+            });
     }
 
     refreshKeyStatus(forceUpdate = false)
