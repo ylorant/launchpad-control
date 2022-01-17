@@ -27,15 +27,20 @@ const Publisher = require('./publisher');
 
 //// LOGGING INIT ////
 
+let loggerTransports = [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' })
+];
+
 global.logger = winston.createLogger({
     level: 'info',
-    format: winston.format.simple(),
-    transports: [
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' }),
-    ]
+    format: winston.format.combine(
+        winston.format.splat(),
+        winston.format.simple()
+    )
 });
 
+// Toggle either full console logging or logfile logging depending on cases
 if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console({
         format: winston.format.combine(
@@ -47,6 +52,10 @@ if (process.env.NODE_ENV !== 'production') {
             )
         )
     }));
+} else {
+    for(let transport of loggerTransports) {
+        logger.add(transport);
+    }
 }
 
 //// CONFIGURATION LOADING ////
