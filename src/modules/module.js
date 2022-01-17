@@ -12,6 +12,11 @@ class Module
     shutdown()
     {
     }
+
+    getConfiguration()
+    {
+        return {};
+    }
 }
 
 module.exports = Module;

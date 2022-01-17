@@ -4,6 +4,8 @@ const Module = require('./module');
 const _ = require('underscore');
 const { isEmpty } = require('underscore');
 
+const CONNECT_MAX_TRIES = 5;
+
 class OBSModule extends Module
 {
     //// LIFECYCLE ////
@@ -17,6 +19,7 @@ class OBSModule extends Module
         let sceneItemList = [];
         let typeList = {};
 
+        this.connectTries = 0;
         this.sceneList = sceneList;
         this.sourceList = sourceList;
         this.typeList = typeList;
@@ -38,14 +41,40 @@ class OBSModule extends Module
         this.obsConnection.disconnect();
     }
 
+    getConfiguration()
+    {
+        return {
+            address: {
+                type: "string",
+                label: "Websocket host address",
+                default: "127.0.0.1:4444"
+            },
+
+            password: {
+                type: "string",
+                label: "Password",
+                default: ""
+            }
+        };
+    }
+
     connect()
     {
-        logger.info("Connecting to OBS...");
+        // Handle a maximum amount of connections to avoid endlessly connecting.
+        this.connectTries++;
+        if(this.connectTries > CONNECT_MAX_TRIES) {
+            logger.info("Maximum amount of tries exceeded, aborting OBS connection.");
+            return;
+        }
+
+        logger.info("Connecting to OBS (%d/%d)...", this.connectTries, CONNECT_MAX_TRIES);
         this.obsConnection = new OBSWebSocket();
         this.obsConnection
         .connect(this.config)
             // Binding events
             .then(() => {
+                this.connectTries = 0;
+
                 this.obsConnection
                     .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
                     .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))

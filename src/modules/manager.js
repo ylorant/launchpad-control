@@ -1,11 +1,14 @@
 const _ = require('underscore');
-const CoreActions = require('./core');
-const OBSActions = require('./obs');
+const CoreModule = require('./core');
+const OBSModule = require('./obs');
 
 const AVAILABLE_MODULES = {
-    'core': CoreActions,
-    'obs': OBSActions
+    'core': CoreModule,
+    'obs': OBSModule
 };
+
+const CONFIG_KEY_SETTINGS = "modules.settings";
+const CONFIG_KEY_LOAD = "modules.load";
 
 class ModuleManager
 {
@@ -15,8 +18,8 @@ class ModuleManager
         this.sceneManager = sceneManager;
         this.configuration = configuration;
 
-        let modulesToLoad = this.configuration.get('modules.load');
-        let modulesConfig = this.configuration.get('modules.config'); 
+        let modulesToLoad = this.configuration.get(CONFIG_KEY_LOAD);
+        let modulesSettings = this.configuration.get(CONFIG_KEY_SETTINGS); 
 
         this.modules = {};
         this.actions = {};
@@ -25,16 +28,16 @@ class ModuleManager
 
         for(let i in modulesToLoad) {
             let moduleName = modulesToLoad[i];
-            let config = modulesConfig[moduleName];
-            this.loadModule(moduleName, config);
+            let settings = modulesSettings[moduleName];
+            this.loadModule(moduleName, settings);
         }
     }
 
-    loadModule(moduleName, moduleConfig)
+    loadModule(moduleName, moduleSettings)
     {
         if(moduleName in AVAILABLE_MODULES) {
             let module = new AVAILABLE_MODULES[moduleName](this);
-            module.init(moduleConfig);
+            module.init(moduleSettings);
             
             this.actions[moduleName] = module.getActions();
             for(let id in this.actions[moduleName]) {
@@ -45,6 +48,46 @@ class ModuleManager
         }
 
         return false;
+    }
+
+    getAvailableModules()
+    {
+        return Object.keys(AVAILABLE_MODULES);
+    }
+
+    getLoadedModules()
+    {
+        return Object.keys(this.modules);
+    }
+
+    setLoadedModules(modules)
+    {
+        this.configuration.set(CONFIG_KEY_LOAD, modules);
+    }
+
+    compileConfiguration()
+    {
+        let configurations = {};
+
+        // Iterate through the modules to fetch the available config parameters for each one
+        for(let moduleName in this.modules) {
+            let config = {};
+            config = this.modules[moduleName].getConfiguration();
+
+            configurations[moduleName] = config;
+        }
+
+        return configurations;
+    }
+
+    getSettings()
+    {
+        return this.configuration.get(CONFIG_KEY_SETTINGS);
+    }
+
+    updateSettings(newSettings)
+    {
+        this.configuration.set(CONFIG_KEY_SETTINGS, newSettings);
     }
 
     compileActions()

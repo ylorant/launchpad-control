@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "react-bootstrap";
+import ModuleManager from "./ModuleManager";
 import ScriptEditor from "./ScriptEditor";
 
 class SystemOperations extends React.Component
@@ -24,7 +25,7 @@ class SystemOperations extends React.Component
         this.setState({ configPath: data });
     }
 
-    onSaveScript(name, newScript)
+    onSaveScripts(name, newScript)
     {
         this.props.api.scripts.script[name].put({ script: newScript }, () => {});
 
@@ -125,8 +126,10 @@ class SystemOperations extends React.Component
                                 Reconnect
                             </Button>
                             <ScriptEditor
-                                onSave={this.onSaveScript.bind(this)}
+                                onSave={this.onSaveScripts.bind(this)}
                                 scripts={this.props.scripts} />
+                            <ModuleManager
+                                api={this.props.api} />
                         </div>
                         <div className="col-6 form-group">
                             <label>Configuration: </label>
