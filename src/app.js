@@ -71,17 +71,6 @@ conf.get("launchpad.port.input");
 logger.info("Initializing publisher...");
 global.publisher = new Publisher(conf.get("publisher"));
 
-//// LAUNCHPAD INIT ////
-
-// logger.info("Initializing Launchpad connection...");
-// var launchpad = new LaunchpadControl();
-// launchpad.init(conf.get("launchpad"));
-
-// if(!launchpad.isConnected()) {
-//     logger.info("Exiting.");
-//     process.exit();
-// }
-
 //// SCRIPTS MANAGER INIT ////
 
 logger.info("Initializing scripts manager...");
