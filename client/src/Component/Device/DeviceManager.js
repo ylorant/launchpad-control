@@ -40,7 +40,7 @@ class DeviceManager extends React.Component
         if(this.props.forceDevice) {
             newState.currentDevice = this.props.forceDevice;
         }
-        else if(this.state.currentDevice === null) {
+        else if(this.state.currentDevice === null && !_.isEmpty(data)) {
             newState.currentDevice = _.first(data).id;
         }
 
