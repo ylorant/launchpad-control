@@ -48,7 +48,9 @@ class SystemOperations extends React.Component
 
     onHooksReceive(err, data, handlers)
     {
-        this.setState({ hooks: data });
+        if(data) {
+            this.setState({ hooks: data });
+        }
     }
 
     onSaveConfig()

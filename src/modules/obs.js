@@ -33,12 +33,16 @@ class OBSModule extends Module
 
         if(this.config) {
             this.connect();
+        } else {
+            logger.warn("No configuration present, cannot connect to OBS.");
         }
     }
 
     shutdown()
     {
-        this.obsConnection.disconnect();
+        if(this.obsConnection) {
+            this.obsConnection.disconnect();
+        }
     }
 
     getConfiguration()

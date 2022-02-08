@@ -29,10 +29,12 @@ class ModuleManager extends React.Component
 
     onDataReceive(property, err, data, handlers)
     {
-        let stateUpdate = {};
-        stateUpdate[property] = data;
+        if(data !== null) {
+            let stateUpdate = {};
+            stateUpdate[property] = data;
 
-        this.setState(stateUpdate);
+            this.setState(stateUpdate);
+        }
     }
 
     onToggleModule(ev)

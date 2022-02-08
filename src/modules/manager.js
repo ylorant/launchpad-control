@@ -17,20 +17,15 @@ class ModuleManager
         this.scriptManager = scriptManager;
         this.sceneManager = sceneManager;
         this.configuration = configuration;
-
-        let modulesToLoad = this.configuration.get(CONFIG_KEY_LOAD);
-        let modulesSettings = this.configuration.get(CONFIG_KEY_SETTINGS); 
-
+        
         this.modules = {};
         this.actions = {};
         this.actionModules = {};
         this.shutdownTriggers = {};
 
-        for(let i in modulesToLoad) {
-            let moduleName = modulesToLoad[i];
-            let settings = modulesSettings[moduleName];
-            this.loadModule(moduleName, settings);
-        }
+        let modulesToLoad = this.configuration.get(CONFIG_KEY_LOAD) || [];
+        
+        this.setLoadedModules(modulesToLoad);
     }
 
     loadModule(moduleName, moduleSettings)
@@ -63,6 +58,15 @@ class ModuleManager
     setLoadedModules(modules)
     {
         this.configuration.set(CONFIG_KEY_LOAD, modules);
+
+        let loadedModules = Object.keys(this.modules);
+        let modulesSettings = this.configuration.get(CONFIG_KEY_SETTINGS) || {};
+
+        for(let i of modules) {
+            if(!_.contains(loadedModules, i)) {
+                this.loadModule(i, modulesSettings[i]);
+            }
+        }
     }
 
     compileConfiguration()
