@@ -45,7 +45,7 @@ class OBSModule extends Module
         }
     }
 
-    getConfiguration()
+    static getConfiguration()
     {
         return {
             address: {

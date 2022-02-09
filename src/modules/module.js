@@ -13,7 +13,7 @@ class Module
     {
     }
 
-    getConfiguration()
+    static getConfiguration()
     {
         return {};
     }

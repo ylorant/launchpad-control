@@ -74,9 +74,9 @@ class ModuleManager
         let configurations = {};
 
         // Iterate through the modules to fetch the available config parameters for each one
-        for(let moduleName in this.modules) {
+        for(let moduleName in AVAILABLE_MODULES) {
             let config = {};
-            config = this.modules[moduleName].getConfiguration();
+            config = AVAILABLE_MODULES[moduleName].getConfiguration();
 
             configurations[moduleName] = config;
         }
