@@ -4,6 +4,7 @@ import _ from "underscore";
 import VirtualDevice from "./VirtualDevice/VirtualDevice";
 import Launchpad from "./Launchpad/Launchpad";
 import NanoKontrol from "./NanoKontrol/NanoKontrol";
+import XTouchOne from "./XTouchOne/XTouchOne";
 
 class DeviceManager extends React.Component
 {
@@ -137,6 +138,16 @@ class DeviceManager extends React.Component
                                 scene={this.props.scene} />
                         );
                     
+                    case XTouchOne.TYPE:
+                        return (
+                            <XTouchOne
+                                device={this.state.devices[i]}
+                                selectedKey={this.props.selectedKey}
+                                onSelectKey={this.props.onSelectKey}
+                                viewMode={this.props.viewMode}
+                                scene={this.props.scene} />
+                        );
+
                     default:
                         return null;
                 }

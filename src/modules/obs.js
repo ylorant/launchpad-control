@@ -29,6 +29,8 @@ class OBSModule extends Module
         this.fadeInterval = null;
         this.fadeStatus = {};
         this.currentPreview = null;
+        this.cropDirection = null;
+        this.cropPrecision = OBSModule.PRECISION_COARSE;
         this.config = config;
 
         if(this.config) {
@@ -122,6 +124,7 @@ class OBSModule extends Module
     {
         this.refreshKeyStatusByAction('obs_toggle_mute', 'muted', 'source', forceUpdate);
         this.refreshKeyStatusByAction('obs_fade_volume', 'volume', 'source', forceUpdate);
+        this.refreshKeyStatusByAction('obs_set_volume', 'volume', 'source', forceUpdate);
         this.refreshKeyStatusByAction('obs_toggle_visible', 'properties.visible', 'sceneItem', forceUpdate);
     }
 
@@ -135,24 +138,35 @@ class OBSModule extends Module
                 case "source":
                     source = this.getSource(keys[i].action.source);
                     break;
-                    case "sceneItem":
+                
+                case "sceneItem":
                     source = this.getSceneItem(keys[i].action.scene, keys[i].action.source);
                     break;
             }
 
             if(source) {
-                let oldStatus = keys[i].status;
-                let keyActive = _.get(source, property.split('.')) ? true : false;
+                if(keys[i].type === Key.TYPE_ANALOG) {
+                    let oldValue = keys[i].value;
+                    keys[i].setValue(Math.floor(_.get(source, property.split('.')) * 127));
 
-                if(inverted) {
-                   keyActive = !keyActive; 
-                }
-
-                keys[i].status = keyActive ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
-
-                // Update the key only if it has changed
-                if(oldStatus != keys[i].status || forceUpdate) {
-                    this.manager.sceneManager.renderKey(keys[i]);
+                    // Update the key only if it has changed
+                    if(oldValue != keys[i].value || forceUpdate) {
+                        this.manager.sceneManager.renderKey(keys[i]);
+                    }
+                } else {
+                    let oldStatus = keys[i].status;
+                    let keyActive = _.get(source, property.split('.')) ? true : false;
+    
+                    if(inverted) {
+                       keyActive = !keyActive; 
+                    }
+    
+                    keys[i].status = keyActive ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+    
+                    // Update the key only if it has changed
+                    if(oldStatus != keys[i].status || forceUpdate) {
+                        this.manager.sceneManager.renderKey(keys[i]);
+                    }
                 }
             }
         }
@@ -510,7 +524,7 @@ class OBSModule extends Module
             source: source, 
             volume: this.ratioToDB(volume),
             useDecibel: true
-        });
+        }).catch((e) => console.log(e));
     }
 
     changeScene(scene)
@@ -548,8 +562,15 @@ class OBSModule extends Module
             crop: {}
         };
 
-        sceneItem.properties.crop[direction] = amount;
-        itemPropertiesUpdate.crop[direction] = amount;
+        if(direction == "all") {
+            for(let dir of ["top", "bottom", "left", "right"]) {
+                sceneItem.properties.crop[dir] = amount;
+                itemPropertiesUpdate.crop[dir] = amount;
+            }
+        } else {
+            sceneItem.properties.crop[direction] = amount;
+            itemPropertiesUpdate.crop[direction] = amount;
+        }
 
         this.obsConnection.send('SetSceneItemProperties', itemPropertiesUpdate);
     }
@@ -733,6 +754,7 @@ class OBSModule extends Module
                     this.cropSceneItem(sceneName, target.source, actionParameters.direction, cropAmount);
                     return true;
                 }
+                break;
         }
 
         return false;
@@ -879,7 +901,8 @@ class OBSModule extends Module
                             "top",
                             "bottom",
                             "left",
-                            "right"
+                            "right",
+                            "stored"
                         ]
                     },
 
@@ -893,27 +916,39 @@ class OBSModule extends Module
                         }
                     },
 
-                    increment: {
+                    lock_increment: {
                         label: "Lock increment",
                         type: "number",
                         context: "analog"
                     },
 
-                    amount: {
-                        label: "Crop amount",
+                    amount_coarse: {
+                        label: "Crop amount (coarse)",
                         type: "number",
-                        context: "button"
+                        context: ["button", "jogwheel"]
+                    },
+
+                    amount_fine: {
+                        label: "Crop amount (fine)",
+                        type: "number",
+                        context: ["button", "jogwheel"]
                     }
                 },
                 perform: function(key) {
-                    // TODO: Refactor this to avoid repetitions
-                    // Analog handling (slider/rotary)
-                    if(key.value != null) {
-                        switch(key.action.behavior) {
-                            case "jogwheel":
-                                let target = {scene: key.action.scene, source: key.action.source};
-                                let params = { direction: key.action.direction };
+                    let cropDirection = key.action.direction == "stored" ? this.cropDirection : key.action.direction;
 
+                    // No crop direction set, stop handling
+                    if(!cropDirection) {
+                        return;
+                    }
+
+                    if(key.type == Key.TYPE_ANALOG) {
+                        switch(key.action.behavior) {
+                            // Analog handling (slider/absolute rotary)
+                            case "jogwheel":
+                                let target = { scene: key.action.scene, source: key.action.source };
+                                let params = { direction: cropDirection };
+                                
                                 if(!this.jogwheelEnabled(key)) {
                                     this.jogwheelStart(key, "crop", target, params, key.value, key.action.increment);
                                 }
@@ -933,21 +968,116 @@ class OBSModule extends Module
                                 let sceneItem = this.getSceneItem(sceneName, key.action.source);
                                 let cropPixels = 0;
 
-                                if(_.contains(["top", "bottom"], key.action.direction)) {
+                                if(_.contains(["top", "bottom"], cropDirection)) {
                                     cropPixels = sceneItem.properties.sourceHeight * (1.0 - cropPercent);
                                 } else {
                                     cropPixels = sceneItem.properties.sourceWidth * (1.0 - cropPercent);
                                 }
 
-                                this.cropSceneItem(sceneName, key.action.source, key.action.direction, cropPixels);
+                                this.cropSceneItem(sceneName, key.action.source, cropDirection, cropPixels);
                                 break;
                         }
-                    } else { // Digital handling (button)
+                    } else {
+                        let cropIncrement = key.action.amount_coarse;
                         let sceneName = this.getAbsoluteSceneName(key.action.scene);
                         let sceneItem = this.getSceneItem(sceneName, key.action.source);
-                        let cropAmount = sceneItem.properties.crop[key.action.direction] + parseInt(key.action.amount);
+                        let cropAmount = sceneItem.properties.crop[cropDirection];
+                        
+                        // Set the crop increment from the set precision
+                        if(this.cropPrecision == OBSModule.PRECISION_FINE) {
+                            cropIncrement = key.action.amount_fine;
+                        }
 
-                        this.cropSceneItem(key.action.scene, key.action.source, key.action.direction, cropAmount);
+                        if(key.type == Key.TYPE_ROTARY) { // Rotary handling (direction)
+                            cropAmount += parseInt(cropIncrement) * (key.direction == Key.DIRECTION_LEFT ? -1 : 1);
+                        } else { // Digital handling (button)
+                            cropAmount += parseInt(cropIncrement);
+                        }
+
+                        // Cap crop
+                        cropAmount = Math.max(cropAmount, 0);
+                        
+                        this.cropSceneItem(key.action.scene, key.action.source, cropDirection, cropAmount);
+                    }
+                }
+            },
+
+            obs_crop_set_direction: {
+                label: "OBS: Set crop direction",
+                parameters: {
+                    direction: {
+                        label: "Direction",
+                        type: "choice",
+                        values: {
+                            "top": "Top",
+                            "bottom": "Bottom",
+                            "left": "Left",
+                            "right": "Right"
+                        }
+                    }
+                },
+                perform: function(key) {
+                    // Disable all direction keys
+                    let keys = this.manager.sceneManager.getKeysByAction("obs_crop_set_direction");
+
+                    for(let currentKey of keys) {
+                        currentKey.setStatus(Key.STATUS_INACTIVE);
+                        this.manager.sceneManager.renderKey(currentKey);
+                    }
+
+                    // Set direction
+                    if(this.cropDirection != key.action.direction) {
+                        this.cropDirection = key.action.direction;
+                        key.setStatus(Key.STATUS_ACTIVE);
+                    } else { // Reset direction
+                        this.cropDirection = null;
+                        key.setStatus(Key.STATUS_INACTIVE);
+                    }
+                }
+            },
+
+            obs_crop_toggle_precision: {
+                label: "OBS: Toggle crop precision",
+                perform: function(key) {
+                    if(this.cropPrecision == OBSModule.PRECISION_COARSE) {
+                        this.cropPrecision = OBSModule.PRECISION_FINE;
+                    } else {
+                        this.cropPrecision = OBSModule.PRECISION_COARSE;
+                    }
+
+                    key.setStatus(this.cropPrecision == OBSModule.PRECISION_FINE ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE);
+                }
+            },
+
+            obs_crop_reset: {
+                label: "OBS: Reset crop",
+                parameters: {
+                    scene: {
+                        label: "Scene",
+                        type: "choice",
+                        values: function() {
+                            let sceneList = _.clone(this.sceneList);
+                            sceneList.unshift(OBSModule.CURRENT_PREVIEW);
+                            return sceneList;
+                        }
+                    },
+
+                    source: {
+                        label: "Target source",
+                        type: "choice",
+                        values: function() {
+                            return this.getSceneItemSources();
+                        }
+                    }
+                },
+
+                perform: function(key) {
+                    // Set the key as active when pressed the first time to confirm reset
+                    if(key.status == Key.STATUS_INACTIVE) {
+                        key.setStatus(Key.STATUS_ACTIVE)
+                    } else { // Status is active -> we delete and reset the key
+                        this.cropSceneItem(key.action.scene, key.action.source, "all", 0);
+                        key.setStatus(Key.STATUS_INACTIVE);
                     }
                 }
             },
@@ -991,7 +1121,6 @@ class OBSModule extends Module
                     } else {
                         this.toggleSourceVisibility(key.action.scene, key.action.source);
                     }
-
                 }
             },
 
@@ -1077,6 +1206,20 @@ Object.defineProperty(OBSModule, 'JOGWHEEL_LOCK_MAX', {
 
 Object.defineProperty(OBSModule, 'CURRENT_PREVIEW', {
     value: "Current preview",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+
+Object.defineProperty(OBSModule, 'PRECISION_COARSE', {
+    value: "coarse",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+
+Object.defineProperty(OBSModule, 'PRECISION_FINE', {
+    value: "fine",
     writable: false,
     configurable: false,
     enumerable: true,

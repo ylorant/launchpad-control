@@ -11,6 +11,7 @@ class Manager
         this.deviceManager.on('press', this.onDevicePress.bind(this));
         this.deviceManager.on('release', this.onDeviceRelease.bind(this));
         this.deviceManager.on('analog', this.onDeviceAnalog.bind(this));
+        this.deviceManager.on('direction', this.onDeviceDirection.bind(this));
     }
 
     setModuleManager(moduleManager)
@@ -209,6 +210,13 @@ class Manager
     {
         for(var i in this.scenes) {
             this.scenes[i].analogKey(device.id, position, value, this.currentScene == i);
+        }
+    }
+
+    onDeviceDirection(device, position, direction)
+    {
+        for(var i in this.scenes) {
+            this.scenes[i].directionKey(device.id, position, direction, this.currentScene == i);
         }
     }
 

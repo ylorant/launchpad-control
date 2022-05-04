@@ -20,8 +20,8 @@ class Key extends React.Component
             if(Array.isArray(colorCode)) {
                 colorCode = colorCode[0];
             }
-
-            variant = Colors.codes[colorCode].replace("btn-", "");
+            
+            variant = Colors.codes[colorCode ?? "off"].replace("btn-", "");
 
             if(this.props.selected) {
                 variant = variant.replace("outline-", "");

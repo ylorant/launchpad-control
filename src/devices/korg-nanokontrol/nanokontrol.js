@@ -35,6 +35,8 @@ class NanoKontrol extends Device
     /** Connects to the device. */
     open()
     {
+        logger.info('Connecting to Korg NanoKontrol...');
+
         NanoKONTROLLib.connect()
             .then(this.onDeviceConnected.bind(this))
             .catch(this.onConnectionError.bind(this));

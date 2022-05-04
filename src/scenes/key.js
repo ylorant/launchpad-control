@@ -42,6 +42,11 @@ class Key
         this.status = status;
     }
     
+    setValue(value)
+    {
+        this.value = value;
+    }
+
     toggle()
     {
         this.setStatus(this.isActive() ? Key.STATUS_INACTIVE : Key.STATUS_ACTIVE);
@@ -118,6 +123,36 @@ Object.defineProperty(Key, 'STATUS_ACTIVE', {
 });
 Object.defineProperty(Key, 'STATUS_PRESSED', {
     value: "pressed",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+Object.defineProperty(Key, 'DIRECTION_LEFT', {
+    value: "left",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+Object.defineProperty(Key, 'DIRECTION_RIGHT', {
+    value: "right",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+Object.defineProperty(Key, "TYPE_DIGITAL", {
+    value: "digital",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+Object.defineProperty(Key, "TYPE_ANALOG", {
+    value: "analog",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
+Object.defineProperty(Key, "TYPE_ROTARY", {
+    value: "rotary",
     writable: false,
     configurable: false,
     enumerable: true,

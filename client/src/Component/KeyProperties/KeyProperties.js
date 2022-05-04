@@ -6,6 +6,8 @@ import LaunchpadKeyProperties from "./LaunchpadKeyProperties";
 import NanoKontrol from "../Device/NanoKontrol/NanoKontrol";
 import NanoKontrolKeyProperties from "./NanoKontrolKeyProperties";
 import VirtualDevice from "../Device/VirtualDevice/VirtualDevice";
+import XTouchOne from "../Device/XTouchOne/XTouchOne";
+import XTouchOneKeyProperties from "./XTouchOneKeyProperties";
 import VirtualDeviceKeyProperties from "./VirtualDeviceKeyProperties";
 import { Button } from "react-bootstrap";
 
@@ -48,6 +50,14 @@ class KeyProperties extends React.Component
                             currentKey={this.state.key}
                             onChange={this.onSpecificTypeChange.bind(this)} />
                     );
+                
+                case XTouchOne.TYPE:
+                    return (
+                        <XTouchOneKeyProperties
+                            currentKey={this.state.key}
+                            onChange={this.onSpecificTypeChange.bind(this)} />
+                    );
+                
                 default:
                     return null;
             }

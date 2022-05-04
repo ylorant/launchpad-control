@@ -64,6 +64,9 @@ class Device extends EventEmitter
     /** Lights the given element (by its position) of the given value (usually color) */
     light(position, value) {}
 
+    /** Moves an analog element (fader, encoder...) */
+    move(position, value) {}
+
     /** Lights off everything */
     off() {}
 

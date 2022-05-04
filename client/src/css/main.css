@@ -89,7 +89,8 @@ code
 
 /* Buttons */
 
-.btn-group-xs > .btn, .btn-xs {
+.btn-group-xs > .btn, .btn-xs
+{
     padding: .5rem .4rem;
     font-size: .875rem;
     line-height: .5;
@@ -98,20 +99,24 @@ code
 
 /* Modal */
 
-.modal-content {
+.modal-content
+{
     background: #303030;
 }
 
-.modal-content .close {
+.modal-content .close
+{
     color: white;
     text-shadow: none;
 }
 
-.modal-header {
+.modal-header
+{
     border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
-.modal-footer {
+.modal-footer
+{
     border-top-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -204,7 +209,8 @@ fieldset .row-container:last-child .row:last-child .form-group
     border-radius: 0px;
 }
 
-.custom-select {
+.custom-select
+{
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='white' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E")
 }
 
@@ -335,11 +341,13 @@ fieldset .row-container:last-child .row:last-child .form-group
     display: inline-block;
 }
 
-.lp-key:hover {
+.lp-key:hover
+{
     border: 3px solid rgba(0, 190, 245, 0.5);
 }
 
-.lp-key.active {
+.lp-key.active
+{
     border: 3px solid rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }
@@ -421,7 +429,8 @@ fieldset .row-container:last-child .row:last-child .form-group
 
 /* Launchpad media queries (for < 768px screens */
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px)
+{
     .launchpad
     {    
         padding: 15px;
@@ -462,7 +471,8 @@ fieldset .row-container:last-child .row:last-child .form-group
 
 /* Launchpad media queries (for > 1600px screens */
 
-@media screen and (min-width: 1600px) {
+@media screen and (min-width: 1600px)
+{
     .launchpad
     {    
         padding: 30px;
@@ -617,12 +627,14 @@ fieldset .row-container:last-child .row:last-child .form-group
     border: 3px solid rgba(0, 190, 245, 0.5);
 }
 
-.nk-fader-fader-control.active {
+.nk-fader-fader-control.active
+{
     border: 3px solid rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }
 
-.nk-knob.active {
+.nk-knob.active
+{
     border: 3px solid rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }
@@ -674,35 +686,42 @@ fieldset .row-container:last-child .row:last-child .form-group
     background: #fb4541;
 }
 
-.nk-btn:hover {
+.nk-btn:hover
+{
     border: 3px solid rgba(0, 190, 245, 0.5);
 }
 
-.nk-btn.active {
+.nk-btn.active
+{
     border: 3px solid rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }
 
 .nk-transport .nk-btn.active,
-.nk-transport .nk-btn:hover {
+.nk-transport .nk-btn:hover
+{
     line-height: 24px !important;
 }
 
 .nk-transport .nk-btn.nk-half-size.active,
-.nk-transport .nk-btn.nk-half-size:hover {
+.nk-transport .nk-btn.nk-half-size:hover
+{
     line-height: 10px !important;
 }
 
 .nk-transport .nk-btn.nk-half-size.active i,
-.nk-transport .nk-btn.nk-half-size:hover i {
+.nk-transport .nk-btn.nk-half-size:hover i
+{
     line-height: 9px !important;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px)
+{
 
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (min-width: 1600px)
+{
     
 }
 
@@ -721,4 +740,139 @@ fieldset .row-container:last-child .row:last-child .form-group
     font-family: "Share Tech Mono";
     padding: 25px;
     width: 100%;
+}
+
+/* Behringer X-Touch One */
+
+.xtouch-one
+{
+    border-radius: 10px;
+    background: #303030;
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    text-align: left;
+    
+    display: inline-block;
+    padding: 30px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    min-width: 600px;
+}
+
+.xto-jogwheel
+{
+    width: 200px;
+    height: 200px;
+    box-sizing: border-box;
+    
+    display: block;
+    border-radius: 100%;
+    background-color: #eee;
+    margin-right: 30px;
+}
+
+.xto-jogwheel.right,
+.xto-btn.right
+{
+    float: right;
+}
+
+.xto-jogwheel.active,
+.xto-encoder.active,
+.xto-btn.active,
+.xto-btn.wide.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    line-height: 30px;
+}
+
+.xto-btn
+{
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    margin-left: 30px;
+
+    display: block;
+    border-radius: 3px;
+    background-color: #eee;
+    color: black;
+}
+
+.xto-btn.no-margin
+{
+    margin-bottom: 0px;
+}
+
+.xto-btn.wide
+{
+    width: 70px;
+    height: 35px;
+    margin-left: 10px;
+
+    line-height: 35px;
+}
+
+.xto-dpad
+{
+    display: grid;
+    grid-template-columns: 40px 40px 40px;
+    grid-template-rows: 40px 40px 40px;
+}
+
+.xto-encoder
+{
+    width: 50px;
+    height: 50px;
+    box-sizing: border-box;
+
+    display: block;
+    border-radius: 100%;
+    background-color: #eee;
+    color: black;
+}
+
+.xto-fader
+{
+    height: 100%;
+    width: 50px;
+    position: relative;
+    margin-bottom: 30px;
+    padding-top: 30px;
+}
+
+.xto-fader::before
+{
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    top: 0px;
+    width: 0px;
+    height: 100%;
+    border-left: 2px solid #888;
+    border-right: 2px solid #888;
+    border-radius: 2px;
+}
+
+.xto-fader-control
+{
+    position: absolute;
+    left: 15px;
+    bottom: 0px;
+    width: 25px;
+    border-radius: 3px;
+    height: 50px;
+
+    cursor: pointer;
+
+    background-color: #eee;
+}
+
+.xto-fader-control.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
 }

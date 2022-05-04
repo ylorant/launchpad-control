@@ -1,6 +1,7 @@
 const Launchpad = require('./launchpad');
 const NanoKontrol = require('./korg-nanokontrol');
 const VirtualDevice = require('./virtual-device');
+const XTouchOne = require('./xtouch-one');
 const EventEmitter = require('events');
 
 class DeviceManager extends EventEmitter
@@ -38,6 +39,7 @@ class DeviceManager extends EventEmitter
         deviceTypes[Launchpad.getType()] = Launchpad;
         deviceTypes[NanoKontrol.getType()] = NanoKontrol;
         deviceTypes[VirtualDevice.getType()] = VirtualDevice;
+        deviceTypes[XTouchOne.getType()] = XTouchOne;
 
         return deviceTypes;
     }
@@ -56,6 +58,7 @@ class DeviceManager extends EventEmitter
         device.on("press", this.onDevicePress.bind(this, device));
         device.on("release", this.onDeviceRelease.bind(this, device));
         device.on("analog", this.onDeviceAnalog.bind(this, device));
+        device.on("direction", this.onDeviceDirection.bind(this, device));
         device.init(config);
 
         this.devices.push(device);
@@ -131,6 +134,11 @@ class DeviceManager extends EventEmitter
     onDeviceAnalog(device, position, value)
     {
         this.emit("analog", device, position, value);
+    }
+
+    onDeviceDirection(device, position, direction)
+    {
+        this.emit("direction", device, position, direction);
     }
 
     export()

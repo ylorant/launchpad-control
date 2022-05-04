@@ -27,6 +27,7 @@ class Scene
         let key = this.findKey(deviceId, position);
 
         if(key) {
+            key.type = Key.TYPE_DIGITAL;
             key.pressed = true;
             if(render) {
                 key.executeAction();
@@ -40,6 +41,7 @@ class Scene
         let key = this.findKey(deviceId, position);
 
         if(key) {
+            key.type = Key.TYPE_DIGITAL;
             key.pressed = false;
             if(render) {
                 this.renderKey(key, false);
@@ -52,7 +54,21 @@ class Scene
         let key = this.findKey(deviceId, position);
 
         if(key) {
+            key.type = Key.TYPE_ANALOG;
             key.value = value;
+            if(render) {
+                key.executeAction();
+            }
+        }
+    }
+
+    directionKey(deviceId, position, direction, render)
+    {
+        let key = this.findKey(deviceId, position);
+        
+        if(key) {
+            key.type = Key.TYPE_ROTARY;
+            key.direction = direction;
             if(render) {
                 key.executeAction();
             }
@@ -124,22 +140,31 @@ class Scene
 
     renderKey(key, notify = true)
     {
-        let newColor = null;
+        switch(key.type) {
+            case Key.TYPE_ANALOG:
+                this.deviceManager.get(key.device).move(key.position, key.value);
+                break;
 
-        if(key.pressed == true && key.colors[Key.STATUS_PRESSED]) {
-            newColor = key.colors[Key.STATUS_PRESSED];
-        } else if(key.colors[key.status]) {
-            newColor = key.colors[key.status];
+            // Default is buttons
+            default:
+                let newColor = null;
+
+                if(key.pressed == true && key.colors[Key.STATUS_PRESSED]) {
+                    newColor = key.colors[Key.STATUS_PRESSED];
+                } else if(key.colors[key.status]) {
+                    newColor = key.colors[key.status];
+                }
+
+                
+                if(Array.isArray(newColor)) {
+                    let ms = (new Date()).getMilliseconds();
+                    let index = Math.floor(ms / (1000 / newColor.length));
+                    
+                    newColor = newColor[index];
+                }
+                
+                this.deviceManager.get(key.device).light(key.position, newColor);
         }
-
-        if(Array.isArray(newColor)) {
-            let ms = (new Date()).getMilliseconds();
-            let index = Math.floor(ms / (1000 / newColor.length));
-
-            newColor = newColor[index];
-        }
-
-        this.deviceManager.get(key.device).light(key.position, newColor);
 
         if(notify) {
             publisher.publish("render-key", {
