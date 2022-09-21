@@ -28,6 +28,7 @@ class XTouchOneDevice extends Device
         this.config = _.extend(defaultConfig, data.config);
         this.xtouch = null;
         this.faderPressed = false;
+        this.connected = false;
 
         // Open the X-Touch One
         this.open();
@@ -48,8 +49,10 @@ class XTouchOneDevice extends Device
 
         try {
             this.xtouch.connect(this.config.inputPort, this.config.outputPort);
+            this.connected = true;
             logger.info("Connected to XTouch One.");
         } catch(e) {
+            this.connected = false;
             logger.error("Cannot connect to XTouch One: " + e.message);
         }
 
@@ -64,7 +67,7 @@ class XTouchOneDevice extends Device
 
     isConnected()
     {
-        return this.xtouch !== null;
+        return this.connected;
     }
 
     light(position, value)
