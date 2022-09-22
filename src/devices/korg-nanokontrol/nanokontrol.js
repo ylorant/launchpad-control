@@ -46,6 +46,7 @@ class NanoKontrol extends Device
     close()
     {
         if(this.isConnected()) {
+            this.off();
             this.nanokontrolDevice.close();
         }
     }
@@ -77,7 +78,7 @@ class NanoKontrol extends Device
     {
         if(this.nanokontrolDevice) {
             for(var i in this.nanokontrolDevice.buttons) {
-                this.light(i, 0);
+                this.light({ element: "button:" + i }, NanoKontrol.OFF);
             }
         }
     }

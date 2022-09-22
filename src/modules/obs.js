@@ -28,6 +28,7 @@ class OBSModule extends Module
         this.jogwheelStatus = {};
         this.fadeInterval = null;
         this.fadeStatus = {};
+        this.currentScene = null;
         this.currentPreview = null;
         this.cropSource = null;
         this.cropDirection = null;
@@ -85,6 +86,7 @@ class OBSModule extends Module
                 this.obsConnection
                     .on('SourceMuteStateChanged', this.onSourceMuteUnmute.bind(this))
                     .on('PreviewSceneChanged', this.onPreviewSceneChanged.bind(this))
+                    .on('SwitchScenes', this.onSwitchScenes.bind(this))
                     .on('SceneItemVisibilityChanged', this.onSceneItemVisibilityChanged.bind(this))
                     .on('SourceVolumeChanged', this.onSourceVolumeChanged.bind(this));
             })
@@ -93,6 +95,7 @@ class OBSModule extends Module
             .then(() => this.fetchData('GetSourcesList', 'sources', 'sourceList'))
             .then(() => this.fetchData('GetSourceTypesList', 'types', 'typeList'))
             .then(() => this.fetchData('GetPreviewScene', 'name', 'currentPreview'))
+            .then(() => this.fetchData('GetCurrentScene', 'name', 'currentScene'))
             // Format data that needs to be formatted
             .then(() => {
                 let typeListIndexed = {};
@@ -109,6 +112,7 @@ class OBSModule extends Module
                 this.typeList = typeListIndexed;
                 this.sceneList = sceneNamesList;
                 this.onPreviewSceneChanged(this.currentPreview);
+                this.onSwitchScenes(this.currentScene);
             })
             .then(() => this.fetchSceneItems())
             .then(() => this.fetchAudioStatus())
@@ -123,13 +127,38 @@ class OBSModule extends Module
 
     refreshKeyStatus(forceUpdate = false)
     {
-        this.refreshKeyStatusByAction('obs_toggle_mute', 'muted', 'source', forceUpdate);
-        this.refreshKeyStatusByAction('obs_fade_volume', 'volume', 'source', forceUpdate);
-        this.refreshKeyStatusByAction('obs_set_volume', 'volume', 'source', forceUpdate);
-        this.refreshKeyStatusByAction('obs_toggle_visible', 'properties.visible', 'sceneItem', forceUpdate);
+        this.refreshKeyStatusFromProperty('obs_toggle_mute', 'muted', 'source', forceUpdate);
+        this.refreshKeyStatusFromProperty('obs_fade_volume', 'volume', 'source', forceUpdate);
+        this.refreshKeyStatusFromProperty('obs_set_volume', 'volume', 'source', forceUpdate);
+        this.refreshKeyStatusFromProperty('obs_toggle_visible', 'properties.visible', 'sceneItem', forceUpdate);
+        
+        // Update OBS change scene buttons
+        this.refreshKeyStatusFromActionParameter("obs_change_scene", "scene", this.sceneList[this.currentScene], forceUpdate);
+        this.refreshKeyStatusFromActionParameter("obs_set_preview", "scene", this.sceneList[this.currentPreview], forceUpdate);
     }
 
-    refreshKeyStatusByAction(action, property, type, forceUpdate = false, inverted = false)
+    refreshKeyStatusFromActionParameter(action, actionParam, checkValue, forceUpdate = false, inverted = false)
+    {
+        let keys = this.manager.sceneManager.getKeysByAction(action);
+
+        for(let i in keys) {
+            let oldValue = keys[i].value;
+            let keyActive = keys[i].action[actionParam] == checkValue;
+
+            if(inverted) {
+                keyActive = !keyActive; 
+             }
+
+             keys[i].status = keyActive ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+
+            // Update the key only if it has changed
+            if(oldValue != keys[i].value || forceUpdate) {
+                this.manager.sceneManager.renderKey(keys[i]);
+            }
+        }
+    }
+
+    refreshKeyStatusFromProperty(action, property, type, forceUpdate = false, inverted = false)
     {
         let keys = this.manager.sceneManager.getKeysByAction(action);
 
@@ -186,6 +215,17 @@ class OBSModule extends Module
         if(render) {
             this.refreshKeyStatus();
         }
+    }
+
+    onSwitchScenes(data)
+    {
+        let sceneIndex = this.sceneList.indexOf(data["scene-name"] ? data["scene-name"] : data);
+
+        if(sceneIndex != -1) {
+            this.currentScene = sceneIndex;
+        }
+
+        this.refreshKeyStatus();
     }
 
     onPreviewSceneChanged(data)
@@ -530,14 +570,16 @@ class OBSModule extends Module
 
     changeScene(scene)
     {
-        this.obsConnection.send("SetCurrentScene", {'scene-name': scene});
+        this.obsConnection.send("SetCurrentScene", {'scene-name': scene})
+            .catch((e) => console.log(e));
     }
 
     changePreviewScene(scene)
     {
         if(this.sceneList.includes(scene)) {
             this.currentPreview = this.sceneList.indexOf(scene);
-            this.obsConnection.send("SetPreviewScene", {'scene-name': scene});
+            this.obsConnection.send("SetPreviewScene", {'scene-name': scene})
+                .catch((e) => console.log(e));
         }
     }
 

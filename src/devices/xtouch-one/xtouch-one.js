@@ -61,6 +61,7 @@ class XTouchOneDevice extends Device
 
     close()
     {
+        this.off();
         this.xtouch.disconnect();
         this.xtouch = null;
     }
