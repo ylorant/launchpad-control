@@ -29,6 +29,7 @@ class OBSModule extends Module
         this.fadeInterval = null;
         this.fadeStatus = {};
         this.currentPreview = null;
+        this.cropSource = null;
         this.cropDirection = null;
         this.cropPrecision = OBSModule.PRECISION_COARSE;
         this.config = config;
@@ -872,7 +873,7 @@ class OBSModule extends Module
                     this.transitionScene();
                 }
             },
-            
+
             obs_crop: {
                 label: "OBS: Crop source",
                 parameters: {
@@ -890,7 +891,10 @@ class OBSModule extends Module
                         label: "Target source",
                         type: "choice",
                         values: function() {
-                            return this.getSceneItemSources();
+                            let sources = this.getSceneItemSources();
+                            sources.unshift("[stored]");
+
+                            return sources;
                         }
                     },
                     
@@ -936,6 +940,7 @@ class OBSModule extends Module
                 },
                 perform: function(key) {
                     let cropDirection = key.action.direction == "stored" ? this.cropDirection : key.action.direction;
+                    let cropSource = key.action.source == "[stored]" ? this.cropSource : key.action.source;
 
                     // No crop direction set, stop handling
                     if(!cropDirection) {
@@ -946,7 +951,7 @@ class OBSModule extends Module
                         switch(key.action.behavior) {
                             // Analog handling (slider/absolute rotary)
                             case "jogwheel":
-                                let target = { scene: key.action.scene, source: key.action.source };
+                                let target = { scene: key.action.scene, source: cropSource };
                                 let params = { direction: cropDirection };
                                 
                                 if(!this.jogwheelEnabled(key)) {
@@ -965,7 +970,7 @@ class OBSModule extends Module
                             case "absolute":
                                 let cropPercent = key.value / 127.0;
                                 let sceneName = this.getAbsoluteSceneName(key.action.scene);
-                                let sceneItem = this.getSceneItem(sceneName, key.action.source);
+                                let sceneItem = this.getSceneItem(sceneName, cropSource);
                                 let cropPixels = 0;
 
                                 if(_.contains(["top", "bottom"], cropDirection)) {
@@ -974,13 +979,13 @@ class OBSModule extends Module
                                     cropPixels = sceneItem.properties.sourceWidth * (1.0 - cropPercent);
                                 }
 
-                                this.cropSceneItem(sceneName, key.action.source, cropDirection, cropPixels);
+                                this.cropSceneItem(sceneName, cropSource, cropDirection, cropPixels);
                                 break;
                         }
                     } else {
                         let cropIncrement = key.action.amount_coarse;
                         let sceneName = this.getAbsoluteSceneName(key.action.scene);
-                        let sceneItem = this.getSceneItem(sceneName, key.action.source);
+                        let sceneItem = this.getSceneItem(sceneName, cropSource);
                         let cropAmount = sceneItem.properties.crop[cropDirection];
                         
                         // Set the crop increment from the set precision
@@ -997,7 +1002,7 @@ class OBSModule extends Module
                         // Cap crop
                         cropAmount = Math.max(cropAmount, 0);
                         
-                        this.cropSceneItem(key.action.scene, key.action.source, cropDirection, cropAmount);
+                        this.cropSceneItem(key.action.scene, cropSource, cropDirection, cropAmount);
                     }
                 }
             },
@@ -1035,6 +1040,37 @@ class OBSModule extends Module
                     }
                 }
             },
+            
+            obs_crop_set_source: {
+                label: "OBS: Set crop source",
+                parameters: {
+                    source: {
+                        label: "Target source",
+                        type: "choice",
+                        values: function() {
+                            return this.getSceneItemSources();
+                        }
+                    },
+                },
+                perform: function(key) {
+                    // Disable all source keys
+                    let keys = this.manager.sceneManager.getKeysByAction("obs_crop_set_source");
+
+                    for(let currentKey of keys) {
+                        currentKey.setStatus(Key.STATUS_INACTIVE);
+                        this.manager.sceneManager.renderKey(currentKey);
+                    }
+
+                    // Set direction
+                    if(this.cropSource != key.action.source) {
+                        this.cropSource = key.action.source;
+                        key.setStatus(Key.STATUS_ACTIVE);
+                    } else { // Reset direction
+                        this.cropSource = null;
+                        key.setStatus(Key.STATUS_INACTIVE);
+                    }
+                }
+            },
 
             obs_crop_toggle_precision: {
                 label: "OBS: Toggle crop precision",
@@ -1066,7 +1102,10 @@ class OBSModule extends Module
                         label: "Target source",
                         type: "choice",
                         values: function() {
-                            return this.getSceneItemSources();
+                            let sources = this.getSceneItemSources();
+                            sources.unshift("[stored]");
+
+                            return sources;
                         }
                     }
                 },
@@ -1076,7 +1115,9 @@ class OBSModule extends Module
                     if(key.status == Key.STATUS_INACTIVE) {
                         key.setStatus(Key.STATUS_ACTIVE)
                     } else { // Status is active -> we delete and reset the key
-                        this.cropSceneItem(key.action.scene, key.action.source, "all", 0);
+                        let cropSource = key.action.source == "[stored]" ? this.cropSource : key.action.soruce;
+
+                        this.cropSceneItem(key.action.scene, cropSource, "all", 0);
                         key.setStatus(Key.STATUS_INACTIVE);
                     }
                 }

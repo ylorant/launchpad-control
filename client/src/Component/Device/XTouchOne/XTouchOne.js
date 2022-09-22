@@ -98,6 +98,7 @@ class XTouchOne extends React.Component
         let rows = [];
 
         for(let btnRow of buttons) {
+            btnRow.reverse();
             let row = [];
             for(let btn of btnRow) {
                 row.push(
