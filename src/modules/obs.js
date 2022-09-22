@@ -983,9 +983,11 @@ class OBSModule extends Module
                 perform: function(key) {
                     let cropDirection = key.action.direction == "stored" ? this.cropDirection : key.action.direction;
                     let cropSource = key.action.source == "[stored]" ? this.cropSource : key.action.source;
+                    let sceneName = this.getAbsoluteSceneName(key.action.scene);
+                    let sceneItem = this.getSceneItem(sceneName, cropSource);
 
-                    // No crop direction set, stop handling
-                    if(!cropDirection) {
+                    // No crop direction set or scene item has not been found, stop handling
+                    if(!cropDirection || !sceneItem) {
                         return;
                     }
 
@@ -1011,8 +1013,6 @@ class OBSModule extends Module
                                 
                             case "absolute":
                                 let cropPercent = key.value / 127.0;
-                                let sceneName = this.getAbsoluteSceneName(key.action.scene);
-                                let sceneItem = this.getSceneItem(sceneName, cropSource);
                                 let cropPixels = 0;
 
                                 if(_.contains(["top", "bottom"], cropDirection)) {
@@ -1026,8 +1026,6 @@ class OBSModule extends Module
                         }
                     } else {
                         let cropIncrement = key.action.amount_coarse;
-                        let sceneName = this.getAbsoluteSceneName(key.action.scene);
-                        let sceneItem = this.getSceneItem(sceneName, cropSource);
                         let cropAmount = sceneItem.properties.crop[cropDirection];
                         
                         // Set the crop increment from the set precision
