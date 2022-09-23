@@ -225,7 +225,7 @@ class OBSModule extends Module
             this.currentScene = sceneIndex;
         }
 
-        this.refreshKeyStatus();
+        this.refreshKeyStatusFromActionParameter("obs_change_scene", "scene", this.sceneList[this.currentScene], true);
     }
 
     onPreviewSceneChanged(data)
@@ -235,6 +235,8 @@ class OBSModule extends Module
         if(sceneIndex != -1) {
             this.currentPreview = sceneIndex;
         }
+        
+        this.refreshKeyStatusFromActionParameter("obs_set_preview", "scene", this.sceneList[this.currentPreview], true);
     }
 
     onSceneItemVisibilityChanged(data)
