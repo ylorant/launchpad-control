@@ -42,7 +42,8 @@ class ScriptsManager
 
             // Global access vars: script manager and logger
             scriptManager: this,
-            logger: logger
+            logger: logger,
+            console: console
         };
 
         this.context = vm.createContext(this.sandbox);
