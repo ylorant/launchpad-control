@@ -27,6 +27,7 @@ class ScriptsManager
             require: require,
 
             // Classes, mainly for constants
+            // FIXME: Find a way to change that to a dynamic device sandbox building
             Key: Key,
             Launchpad: {
                 Color: Color,
@@ -35,6 +36,9 @@ class ScriptsManager
             },
             NanoKontrol: NanoKontrol,
             XTouchOne: XTouchOne,
+
+            // Variable container, to access variables from outside
+            vars: {},
 
             // Global access vars: script manager and logger
             scriptManager: this,
