@@ -4,6 +4,7 @@ const Color = require('../devices/launchpad/color');
 const Animation = require('../devices/launchpad/animations/animation');
 const Actions = require('../devices/launchpad/animations/action/actions');
 const NanoKontrol = require('../devices/korg-nanokontrol');
+const XTouchOne = require('../devices/xtouch-one');
 
 class ScriptsManager
 {
@@ -33,6 +34,7 @@ class ScriptsManager
                 Actions: Actions,
             },
             NanoKontrol: NanoKontrol,
+            XTouchOne: XTouchOne,
 
             // Global access vars: script manager and logger
             scriptManager: this,

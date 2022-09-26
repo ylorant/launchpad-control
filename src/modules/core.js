@@ -38,6 +38,23 @@ class CoreModule extends Module
                     this.manager.scriptManager.updateContext({ key: key });
                     this.manager.scriptManager.executeScript(key.action.script);
                 }
+            },
+
+            core_set_variable: {
+                label: "Core: Set variable value",
+                parameters: {
+                    name: {
+                        label: "Variable name",
+                        type: "string"
+                    },
+                    value: {
+                        label: "Variable value",
+                        type: "string"
+                    }
+                },
+                perform: function(key) {
+                    this.manager.scriptManager.sandbox.vars[key.action.name] = key.action.value;
+                }
             }
         };
     }

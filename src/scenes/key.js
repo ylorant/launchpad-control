@@ -13,6 +13,7 @@ class Key
         this.colors = {};
         this.action = {};
 
+        this.colors[Key.STATUS_DISABLED] = null;
         this.colors[Key.STATUS_INACTIVE] = null;
         this.colors[Key.STATUS_ACTIVE] = null;
         this.colors[Key.STATUS_PRESSED] = null;
@@ -109,6 +110,12 @@ class Key
     }
 }
 
+Object.defineProperty(Key, 'STATUS_DISABLED', {
+    value: "disabled",
+    writable: false,
+    configurable: false,
+    enumerable: true,
+});
 Object.defineProperty(Key, 'STATUS_INACTIVE', {
     value: "inactive",
     writable: false,

@@ -19,6 +19,7 @@
     "launchpadder": "0.0.5",
     "mercure": "^0.1.0",
     "morgan": "~1.9.1",
+    "node-hedgebot-client": "^1.0.0",
     "node-xtouch-one": "^1.0.3",
     "obs-websocket-js": "^4.0.2",
     "underscore": "^1.13.1",
