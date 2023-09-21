@@ -204,6 +204,29 @@ fieldset .row-container:last-child .row:last-child .form-group
     box-shadow: 0px 0px 5px 1px rgba(230, 186, 55, 0.4), inset 0px 0px 5px 1px rgba(230, 186, 55, 0.4);
 }
 
+.form-control[type="checkbox"]
+{
+    display: grid;
+    place-content: center;
+    appearance: none;
+    width: calc(1.5em + .75rem + 2px);
+    margin: auto;
+}
+
+.form-control[type="checkbox"]:checked::before {
+    content: "";
+    width: 1em;
+    height: 1em;
+    box-shadow: inset 1em 1em rgba(0, 190, 245, 1);
+
+    transform-origin: bottom left;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.form-control[type="checkbox"]:focus:checked::before {
+    box-shadow: inset 1em 1em rgba(230, 186, 55, 1);
+}
+
 .btn, .form-control
 {
     border-radius: 0px;
@@ -667,6 +690,8 @@ fieldset .row-container:last-child .row:last-child .form-group
     line-height: 30px;
     margin-right: 8px;
     margin-bottom: 8px;
+
+    cursor: pointer;
 }
 
 .nk-transport .nk-btn.nk-half-size
@@ -875,4 +900,250 @@ fieldset .row-container:last-child .row:last-child .form-group
 {
     border: 3px solid rgba(0, 190, 245, 1);
     box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+}
+
+/* Korg NanoKontrol Studio */
+
+.nanokontrol-studio
+{
+    font-family: sans-serif;
+    border-radius: 10px;
+    background: #303030;
+    border: 1px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4), inset 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    text-align: left;
+
+    padding: 15px 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+}
+
+.nks-fader-block
+{
+    border-right: 1px solid #454545;
+}
+
+.nks-fader-block:last-of-type
+{
+    border-right: 0px;
+}
+
+.nks-knob
+{
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #454545;
+    transform: rotate(-120deg);
+    margin-bottom: 12px;
+
+    cursor: pointer;
+}
+
+.nks-knob::before
+{
+    content: "";
+    border-left: 1px solid white;
+    width: 0px;
+    height: 10px;
+    display: block;
+    position: absolute;
+    left: 50%;
+}
+
+.nks-fader-button
+{
+    width: 50px;
+    height: 20px;
+    margin: auto;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+
+    font-family: "Share Tech Mono";
+    /* font-family: Cabin; */
+    font-weight: 500;
+    text-align: center;
+
+    font-size: 12px;
+    background: #eee;
+    color: #222;
+    border-radius: 3px;
+    line-height: 20px;
+
+    cursor: pointer;
+}
+
+.nks-fader-slider
+{
+    width: 40px;
+    height: 76px;
+    margin: auto;
+    position: relative;
+}
+
+.nks-fader-slider::before
+{
+    content: "";
+
+    position: absolute;
+    left: 50%;
+    top: 0px;
+    width: 0px;
+    height: 100%;
+    border-left: 1px solid #888;
+    border-right: 1px solid #888;
+    border-radius: 2px;
+}
+
+.nks-fader-slider .nks-fader-slider-control
+{
+    position: absolute;
+    left: 6px;
+    bottom: 0px;
+    width: 30px;
+    border-radius: 3px;
+    height: 20px;
+
+    cursor: pointer;
+
+    background-color: #eee;
+}
+
+.nks-fader-button:hover,
+.nks-knob:hover,
+.nks-fader-slider-control:hover
+{
+    border: 3px solid rgba(0, 190, 245, 0.5);
+}
+
+.nks-fader-slider-control.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+}
+
+.nks-knob.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+}
+
+.nks-fader-button:hover,
+.nks-fader-button.active
+{
+    line-height: 15px;
+}
+
+.nks-knob:hover:before
+{
+    top:-2px;
+}
+
+.nks-transport .nks-small-btn-container
+{
+    line-height: 0px;
+}
+
+.nks-transport .nks-btn
+{
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    font-family: "Share Tech Mono";
+    /* font-family: Cabin; */
+    font-weight: 500;
+
+    background-color: #eee;
+    border-radius: 3px;
+    color: black;
+    text-align: center;
+    line-height: 30px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+
+    cursor: pointer;
+}
+
+.nks-transport .nks-btn.nks-half-size
+{
+    height: 15px;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+.nks-transport .nks-btn.nks-half-size i
+{
+    font-size: 12px;
+}
+
+.nks-btn.on
+{
+    background: #fb4541;
+}
+
+.nks-btn:hover
+{
+    border: 3px solid rgba(0, 190, 245, 0.5);
+}
+
+.nks-btn.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+}
+
+.nks-transport .nks-btn.active,
+.nks-transport .nks-btn:hover
+{
+    line-height: 24px !important;
+}
+
+.nks-transport .nks-btn.nks-half-size.active,
+.nks-transport .nks-btn.nks-half-size:hover
+{
+    line-height: 10px !important;
+}
+
+.nks-transport .nks-btn.nks-half-size.active i,
+.nks-transport .nks-btn.nks-half-size:hover i
+{
+    line-height: 9px !important;
+}
+
+
+.nks-jogwheel
+{
+    width: 80px;
+    height: 80px;
+    box-sizing: border-box;
+    
+    display: block;
+    border-radius: 100%;
+    background-color: #eee;
+}
+
+.nks-jogwheel.right
+{
+    float: right;
+}
+
+.nks-jogwheel.active
+{
+    border: 3px solid rgba(0, 190, 245, 1);
+    box-shadow: 0px 0px 5px 1px rgba(0, 190, 245,0.4);
+    line-height: 30px;
+}
+
+
+@media screen and (max-width: 768px)
+{
+
+}
+
+@media screen and (min-width: 1600px)
+{
+    
 }

@@ -1,10 +1,12 @@
 const _ = require('underscore');
 const CoreModule = require('./core');
 const OBSModule = require('./obs');
+const Yamaha01v96Module = require('./yamaha-01v96');
 
 const AVAILABLE_MODULES = {
     'core': CoreModule,
-    'obs': OBSModule
+    'obs': OBSModule,
+    'yamaha-01v96': Yamaha01v96Module
 };
 
 const CONFIG_KEY_SETTINGS = "modules.settings";
@@ -31,6 +33,8 @@ class ModuleManager
     loadModule(moduleName, moduleSettings)
     {
         if(moduleName in AVAILABLE_MODULES) {
+            logger.info("Loading module " + moduleName + "...");
+
             let module = new AVAILABLE_MODULES[moduleName](this);
             module.init(moduleSettings);
             
@@ -43,6 +47,16 @@ class ModuleManager
         }
 
         return false;
+    }
+
+    unloadModule(moduleName)
+    {
+        if(this.modules[moduleName]) {
+            logger.info("Unloading module " + moduleName + "...");
+
+            this.modules[moduleName].shutdown();
+            delete this.modules[moduleName];
+        }
     }
 
     getAvailableModules()
@@ -62,9 +76,17 @@ class ModuleManager
         let loadedModules = Object.keys(this.modules);
         let modulesSettings = this.configuration.get(CONFIG_KEY_SETTINGS) || {};
 
+        // Load new modules
         for(let i of modules) {
             if(!_.contains(loadedModules, i)) {
                 this.loadModule(i, modulesSettings[i]);
+            }
+        }
+
+        // Unload removed modules
+        for(let moduleName in this.modules) {
+            if(!_.contains(modules, moduleName)) {
+                this.unloadModule(moduleName);
             }
         }
     }

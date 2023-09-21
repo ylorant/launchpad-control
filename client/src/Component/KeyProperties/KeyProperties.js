@@ -1,9 +1,11 @@
 import React from "react";
 import set from 'set-value';
+import get from 'get-value';
 import _ from "underscore";
 import Launchpad from "../Device/Launchpad/Launchpad";
 import LaunchpadKeyProperties from "./LaunchpadKeyProperties";
 import NanoKontrol from "../Device/NanoKontrol/NanoKontrol";
+import NanoKontrolStudio from "../Device/NanoKontrolStudio/NanoKontrolStudio";
 import NanoKontrolKeyProperties from "./NanoKontrolKeyProperties";
 import VirtualDevice from "../Device/VirtualDevice/VirtualDevice";
 import XTouchOne from "../Device/XTouchOne/XTouchOne";
@@ -38,6 +40,7 @@ class KeyProperties extends React.Component
                     );
 
                 case NanoKontrol.TYPE:
+                case NanoKontrolStudio.TYPE:
                     return (
                         <NanoKontrolKeyProperties
                             currentKey={this.state.key}
@@ -91,7 +94,13 @@ class KeyProperties extends React.Component
     onChange(ev)
     {
         let key = this.state.key;
-        set(key, ev.target.name, ev.target.value);
+
+        // Handle checkboxes that have to operate like a toggle switch
+        if(ev.currentTarget.type === "checkbox") {
+            set(key, ev.target.name, !get(key, ev.target.name));
+        } else {
+            set(key, ev.target.name, ev.target.value);
+        }
 
         this.setState({key: key, modified: true});
     }
@@ -258,6 +267,18 @@ class KeyProperties extends React.Component
                         );
                         break;
                     
+                    case "boolean":
+                        parameterFormElement = (
+                            <input
+                                id={"key-action-" + i}
+                                className="form-control"
+                                name={"action." + i}
+                                type="checkbox"
+                                checked={this.state.key.action[i] ? true : false}
+                                onChange={this.onChange.bind(this)} />
+                        );
+                        break;
+                    
                     default:
                         parameterFormElement = (
                             <input
@@ -272,7 +293,7 @@ class KeyProperties extends React.Component
 
                 actionParameters.push(
                     <div className="form-group col-6" key={i}>
-                        <label htmlFor="key-scene">{parameter.label}:</label>
+                        <label htmlFor={"key-action-" + i}>{parameter.label}:</label>
                         {parameterFormElement}
                     </div>
                 );

@@ -57,7 +57,7 @@ class NanoKontrol extends Device
         return this.nanokontrolDevice !== null;
     }
 
-    /** Lights the given element (by its position) of the given value (usually color) */
+    /** Lights the given element (by its position) */
     light(position, value)
     {
         if(!this.nanokontrolDevice) {
@@ -103,7 +103,7 @@ class NanoKontrol extends Device
             instance.callEvent(this.event, value);
         });
 
-        logger.info("NanoKontrol/2 ready.");
+        logger.info("Connected to NanoKontrol/2.");
         this.emit("ready");
     }
 

@@ -5,6 +5,7 @@ import VirtualDevice from "./VirtualDevice/VirtualDevice";
 import Launchpad from "./Launchpad/Launchpad";
 import NanoKontrol from "./NanoKontrol/NanoKontrol";
 import XTouchOne from "./XTouchOne/XTouchOne";
+import NanoKontrolStudio from "./NanoKontrolStudio/NanoKontrolStudio";
 
 class DeviceManager extends React.Component
 {
@@ -146,6 +147,17 @@ class DeviceManager extends React.Component
                                 onSelectKey={this.props.onSelectKey}
                                 viewMode={this.props.viewMode}
                                 scene={this.props.scene} />
+                        );
+
+                    case NanoKontrolStudio.TYPE:
+                        return (
+                            <NanoKontrolStudio
+                                device={this.state.devices[i]}
+                                selectedKey={this.props.selectedKey}
+                                onSelectKey={this.props.onSelectKey}
+                                viewMode={this.props.viewMode}
+                                scene={this.props.scene} />
+
                         );
 
                     default:

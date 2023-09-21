@@ -1,5 +1,6 @@
 const Launchpad = require('./launchpad');
 const NanoKontrol = require('./korg-nanokontrol');
+const NanoKontrolStudio = require('./korg-nanokontrol-studio');
 const VirtualDevice = require('./virtual-device');
 const XTouchOne = require('./xtouch-one');
 const EventEmitter = require('events');
@@ -38,6 +39,7 @@ class DeviceManager extends EventEmitter
 
         deviceTypes[Launchpad.getType()] = Launchpad;
         deviceTypes[NanoKontrol.getType()] = NanoKontrol;
+        deviceTypes[NanoKontrolStudio.getType()] = NanoKontrolStudio;
         deviceTypes[VirtualDevice.getType()] = VirtualDevice;
         deviceTypes[XTouchOne.getType()] = XTouchOne;
 
@@ -49,6 +51,7 @@ class DeviceManager extends EventEmitter
         let deviceTypeList = this.getDeviceTypes();
         
         if(!(config.type in deviceTypeList)) {
+            logger.warn("Unrecognized device type for device " + device.id + ": " + device.type);
             return false;
         }
 
@@ -123,21 +126,26 @@ class DeviceManager extends EventEmitter
 
     onDevicePress(device, position)
     {
+        logger.debug("Device event: press " + device.id + "/" + JSON.stringify(position));
         this.emit("press", device, position);
     }
 
     onDeviceRelease(device, position)
     {
+        logger.debug("Device event: release " + device.id + "/" + JSON.stringify(position));
         this.emit("release", device, position);
     }
 
     onDeviceAnalog(device, position, value)
     {
+
+        logger.debug("Device event: analog " + device.id + "/" + JSON.stringify(position) + ":" + value);
         this.emit("analog", device, position, value);
     }
 
     onDeviceDirection(device, position, direction)
     {
+        logger.debug("Device event: direction " + device.id + "/" + JSON.stringify(position) + ":" + direction);
         this.emit("direction", device, position, direction);
     }
 

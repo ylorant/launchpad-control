@@ -25,7 +25,14 @@ const winston = require('winston');
 const Configuration = require('./configuration');
 const Publisher = require('./publisher');
 
+// Parse CLI arguments
+let argv = require('minimist')(process.argv.slice(2));
+
 //// LOGGING INIT ////
+
+// Check if logger mode is verbose
+let verbose = argv.v || argv.verbose || false;
+let stdoutLogging = argv.stdout || false;
 
 let loggerTransports = [
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
@@ -33,7 +40,7 @@ let loggerTransports = [
 ];
 
 global.logger = winston.createLogger({
-    level: 'info',
+    level: verbose ? 'debug' : 'info',
     format: winston.format.combine(
         winston.format.splat(),
         winston.format.simple()
@@ -41,7 +48,7 @@ global.logger = winston.createLogger({
 });
 
 // Toggle either full console logging or logfile logging depending on cases
-if (process.env.NODE_ENV !== 'production') {
+if (stdoutLogging) {
     logger.add(new winston.transports.Console({
         format: winston.format.combine(
             winston.format.colorize(),

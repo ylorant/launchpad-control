@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Modal } from "react-bootstrap";
+import set from "set-value";
 import _ from "underscore";
 
 class ModuleManager extends React.Component
@@ -41,8 +42,9 @@ class ModuleManager extends React.Component
     {
         let newModules = this.state.loadedModules;
 
+        // If the module was already loaded, we remove it from the modules list, else we add it to the list
         if(newModules.includes(ev.target.name)) {
-            newModules = newModules.filter((el) => (el != ev.target.name));
+            newModules = newModules.filter((el) => (el !== ev.target.name));
         } else {
             newModules.push(ev.target.name);
         }
@@ -70,11 +72,27 @@ class ModuleManager extends React.Component
 
     onUpdateSetting(ev)
     {
-        let module, field;
-        let settings = this.state.settings;
+        let module, field, value;
         [module, field] = ev.target.name.split('.');
+        value = ev.target.value;
+        
+        let settings = this.state.settings;
+        let config = this.state.configModel[module][field];
 
-        settings[module][field] = ev.target.value;
+        console.log(module, field, value);
+
+        // Format the setting as the correct type to save
+        switch(config.type) {
+            case "integer":
+                value = parseInt(value);
+                break;
+            
+            case "float":
+                value = parseFloat(value);
+                break;
+        }
+
+        set(settings, ev.target.name, value);
 
         this.setState({ settings: settings });
     }
@@ -112,11 +130,56 @@ class ModuleManager extends React.Component
                                 type="text"
                                 id={elementId} 
                                 name={module + "." + fieldName} 
-                                value={settingValue}
+                                value={settingValue || ""}
+                                placeholder={config.default}
                                 onChange={this.onUpdateSetting.bind(this)} />
                         </div>
                     );
                     break;
+                
+                case "integer":
+                case "float":
+                    fields.push(
+                        <div className="form-group" key={elementId}>
+                            <label htmlFor={elementId}>{config.label}:</label>
+                            <input 
+                                className="form-control" 
+                                type="number"
+                                id={elementId} 
+                                name={module + "." + fieldName} 
+                                value={settingValue || ""}
+                                placeholder={config.default}
+                                onChange={this.onUpdateSetting.bind(this)} />
+                        </div>
+                    );
+                    break;
+                
+                case "choice":
+                    let choiceOptions = [];
+
+                    for (let opt of config.values) {
+                        choiceOptions.push(
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        );
+                    }
+
+                    fields.push(
+                        <div className="form-group" key={elementId}>
+                            <label htmlFor={elementId}>{config.label}:</label>
+                            <select 
+                                id={elementId} 
+                                className="form-control custom-select"
+                                name={module + "." + fieldName} 
+                                value={settingValue || config.default}
+                                onChange={this.onUpdateSetting.bind(this)}>
+                                {choiceOptions}
+                            </select>
+                        </div>
+                    );
+                    break;
+
+                default:
+                    // no-break
             }            
         }
 
@@ -135,7 +198,7 @@ class ModuleManager extends React.Component
 
         for(let i of this.state.availableModules) {
             moduleCheckboxes.push(
-                <div className="col-2" key={i}>
+                <div className="col" key={i}>
                     <div className="form-check">
                         <input 
                             id={"toggle-module-" + i} 

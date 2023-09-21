@@ -154,7 +154,6 @@ class Scene
                 } else if(key.colors[key.status]) {
                     newColor = key.colors[key.status];
                 }
-
                 
                 if(Array.isArray(newColor)) {
                     let ms = (new Date()).getMilliseconds();
