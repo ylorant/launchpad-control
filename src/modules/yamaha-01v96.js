@@ -65,12 +65,17 @@ class Yamaha01v96Module extends Module
         this.mixer = new Yamaha01v96();
 
         this.mixer
-            .on('channelLevel', this.onChannelLevel.bind(this))
-            .on('channelOn', this.onChannelOn.bind(this))
+            .on('channelLevel', this.onChannelLevel.bind(this, "channel"))
+            .on('auxLevel', this.onChannelLevel.bind(this, "bus"))
+            .on('busLevel', this.onChannelLevel.bind(this, "aux"))
+            .on('channelOn', this.onChannelOn.bind(this, "channel"))
+            .on('auxOn', this.onChannelOn.bind(this, "aux"))
+            .on('busOn', this.onChannelOn.bind(this, "bus"))
             .on('soloChannel', this.onSoloOn.bind(this, "channel"))
-            .on('soloMaster', this.onSoloOn.bind(this, "aux"))
-            .on('soloMaster', this.onSoloOn.bind(this, "bus"))
-            .on('soloGroup', this.onSoloOn.bind(this, "group"));
+            .on('soloAux', this.onSoloOn.bind(this, "aux"))
+            .on('soloBus', this.onSoloOn.bind(this, "bus"))
+            .on('soloGroup', this.onSoloOn.bind(this, "group"))
+            .on('debug', (msg) => logger.debug(msg));
 
         if(this.config.faderResolution) {
             this.mixer.setFaderResolution(this.config.faderResolution);
@@ -92,17 +97,36 @@ class Yamaha01v96Module extends Module
 
     refreshKeyStatus()
     {
-        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", "getChannelOn");
-        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", "getChannelLevel");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", { channel_type: "channel"}, "getChannelOn");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", { channel_type: "aux"}, "getAuxOn");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", { channel_type: "bus"}, "getBusOn");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", { channel_type: "in_group"}, "getInGroupMasterOn");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_on", { channel_type: "out_group"}, "getOutGroupMasterOn");
+
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "channel"}, "getChannelLevel");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "aux"}, "getAuxLevel");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "bus"}, "getBusLevel");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "in_group"}, "getInGroupMasterLevel");
+        this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "out_group"}, "getOutGroupMasterLevel");
     }
 
-    refreshKeyStatusForAction(action, call)
+    refreshKeyStatusForAction(action, filters, call)
     {
         let keys = this.manager.sceneManager.getKeysByAction(action);
         let method = this.mixer[call];
 
-        for(let key of keys) {
-            method.call(this.mixer, key.action.channel);
+        for (let key of keys) {
+            let keyValid = true;
+
+            for (let [property, value] of Object.entries(filters)) {
+                if (key.action[property] != value) {
+                    keyValid = false;
+                }
+            }
+
+            if (keyValid) {
+                method.call(this.mixer, key.action.channel);
+            }
         }
     }
 
@@ -136,10 +160,6 @@ class Yamaha01v96Module extends Module
     onSoloOn(type, event)
     {
         let keys = this.manager.sceneManager.getKeysByAction("yamaha01v96_set_solo");
-
-        if (type == "aux") {
-            event.channel -= 8;
-        }
         
         for(let key of keys) {
             if (key.action.channel == event.channel && key.action.channel_type == type) {
@@ -158,6 +178,17 @@ class Yamaha01v96Module extends Module
             yamaha01v96_set_channel_on: {
                 label: "Yamaha 01v96: Set channel on status",
                 parameters: {
+                    channel_type: {
+                        label: "Channel type",
+                        type: "choice",
+                        values: {
+                            "channel": "Input channel",
+                            "aux": "Aux out",
+                            "bus": "Bus out",
+                            "in_group": "Input group",
+                            "out_group": "Output group"
+                        }
+                    },
                     channel: {
                         label: "Channel",
                         type: "number"
@@ -181,6 +212,7 @@ class Yamaha01v96Module extends Module
 
                 perform: function(key) {
                     let status = null, statusToSend = null;
+                    let channelNo = parseInt(key.action.channel);
                     
                     if(key.action.status === "toggle") {
                         // Set the boolean status of the key from its constant reversed (toggle behavior)
@@ -193,7 +225,14 @@ class Yamaha01v96Module extends Module
                     // to the new one defined for the button
                     statusToSend = key.action.reverse ? !status : status;
                     
-                    this.mixer.setChannelOn(key.action.channel, statusToSend);
+                    // Apply the status change to the given channel
+                    switch (key.action.channel_type) {
+                        case 'channel': this.mixer.setChannelOn(channelNo, statusToSend); break;
+                        case 'aux': this.mixer.setAuxOn(channelNo, statusToSend); break;
+                        case 'bus': this.mixer.setBusOn(channelNo, statusToSend); break;
+                        case 'in_group': this.mixer.setInGroupMasterOn(channelNo, statusToSend); break;
+                        case 'out_group': this.mixer.setOutGroupMasterOn(channelNo, statusToSend); break;
+                    }
 
                     // Set status constant from it's boolean status
                     key.status = status ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
@@ -203,6 +242,18 @@ class Yamaha01v96Module extends Module
             yamaha01v96_set_channel_level: {
                 label: "Yamaha 01v96: Set channel fader level",
                 parameters: {
+                    channel_type: {
+                        label: "Channel type",
+                        type: "choice",
+                        values: {
+                            "channel": "Input channel",
+                            "aux": "Aux out",
+                            "bus": "Bus out",
+                            "in_group": "Input group",
+                            "out_group": "Output group"
+                        }
+                    },
+
                     channel: {
                         label: "Channel",
                         type: "number"
@@ -210,6 +261,16 @@ class Yamaha01v96Module extends Module
                 },
 
                 perform: function(key) {
+                    let channelNo = parseInt(key.action.channel);
+
+                    switch (key.action.channel_type) {
+                        case 'channel': this.mixer.setChannelOn(channelNo, statusToSend); break;
+                        case 'aux': this.mixer.setAuxOn(channelNo, statusToSend); break;
+                        case 'bus': this.mixer.setBusOn(channelNo, statusToSend); break;
+                        case 'in_group': this.mixer.setInGroupMasterOn(channelNo, statusToSend); break;
+                        case 'out_group': this.mixer.setOutGroupMasterOn(channelNo, statusToSend); break;
+                    }
+
                     this.mixer.setChannelLevel(key.action.channel, (key.value * 100) / 127);
                 }
             },
@@ -247,6 +308,7 @@ class Yamaha01v96Module extends Module
 
                 perform: function(key) {
                     let status = null;
+                    let channelNo = parseInt(key.action.channel);
                     
                     if(key.action.status === "toggle") {
                         // Set the boolean status of the key from its constant reversed (toggle behavior)
@@ -254,8 +316,6 @@ class Yamaha01v96Module extends Module
                     } else {
                         status =  key.action.status === "on" ? true : false;
                     }
-
-                    let channelNo = parseInt(key.action.channel);
 
                     switch (key.action.channel_type) {
                         case 'channel': this.mixer.soloChannel(channelNo, status); break;

@@ -1,6 +1,6 @@
-# MidiStreamControl
+# MidiControl
 
-MidiStreamControl is an application allowing you to use a MIDI controller to control your stream. As of now it focuses
+MidiStreamControl is an application allowing you to use a MIDI controller to control stuff. As of now it focuses
 on OBS functions, but other functions may be added in the future. It provides a GUI to allow you to set up your devices
 however you want.
 
