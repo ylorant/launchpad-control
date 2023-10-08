@@ -91,6 +91,18 @@ class ModuleManager
         }
     }
 
+    has(moduleName)
+    {
+        return typeof this.modules[moduleName] != "undefined";
+    }
+
+    get(moduleName)
+    {
+        if (this.modules[moduleName]) {
+            return this.modules[moduleName];
+        }
+    }
+
     compileConfiguration()
     {
         let configurations = {};

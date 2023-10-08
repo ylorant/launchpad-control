@@ -68,16 +68,20 @@ class ScriptsManager
             this.hooks.setup = scriptConfig.hooks.setup || null;
             this.hooks.teardown = scriptConfig.hooks.teardown || null;
         }
-
-        // Set everything up in user scripts again
-        if(this.hooks.setup) {
-            this.executeScript(this.hooks.setup);
-        }
     }
 
     close()
     {
-        this.executeScript('teardown');
+        if(this.hooks.teardown) {
+            this.executeScript(this.hooks.teardown);
+        }
+    }
+
+    startup()
+    {
+        if(this.hooks.setup) {
+            this.executeScript(this.hooks.setup);
+        }
     }
 
     executeScript(scriptName)

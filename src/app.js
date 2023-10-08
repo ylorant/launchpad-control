@@ -105,8 +105,18 @@ sm.setModuleManager(modm);
 // Initial rendering when devices are ready
 dm.on('ready', sm.render.bind(sm));
 
-// Add scene manager and device manager to the sandbox
-scrm.updateContext({ sceneManager: sm, deviceManager: dm });
+// Add other managers to the script manager sandbox
+scrm.updateContext({ 
+    scenes: sm,
+    devices: dm,
+    modules: modm,
+
+    sceneManager: sm,
+    moduleManager: modm,
+    deviceManager: dm
+});
+
+scrm.startup();
 
 //// PROCESS MANAGEMENT ////
 

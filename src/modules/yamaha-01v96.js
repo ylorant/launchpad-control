@@ -68,13 +68,18 @@ class Yamaha01v96Module extends Module
             .on('channelLevel', this.onChannelLevel.bind(this, "channel"))
             .on('auxLevel', this.onChannelLevel.bind(this, "bus"))
             .on('busLevel', this.onChannelLevel.bind(this, "aux"))
+            .on('inGroupMasterLevel', this.onChannelLevel.bind(this, "in_group"))
+            .on('outGroupMasterLevel', this.onChannelLevel.bind(this, "out_group"))
             .on('channelOn', this.onChannelOn.bind(this, "channel"))
             .on('auxOn', this.onChannelOn.bind(this, "aux"))
             .on('busOn', this.onChannelOn.bind(this, "bus"))
+            .on('inGroupMasterOn', this.onChannelOn.bind(this, "in_group"))
+            .on('outGroupMasterOn', this.onChannelOn.bind(this, "out_group"))
             .on('soloChannel', this.onSoloOn.bind(this, "channel"))
             .on('soloAux', this.onSoloOn.bind(this, "aux"))
             .on('soloBus', this.onSoloOn.bind(this, "bus"))
-            .on('soloGroup', this.onSoloOn.bind(this, "group"))
+            .on('soloInGroupMaster', this.onSoloOn.bind(this, "in_group"))
+            .on('soloOutGroupMaster', this.onSoloOn.bind(this, "out_group"))
             .on('debug', (msg) => logger.debug(msg));
 
         if(this.config.faderResolution) {
@@ -88,11 +93,11 @@ class Yamaha01v96Module extends Module
         try {
             this.mixer.connect(midiInput, midiOutput);
             logger.info("Connected to Yamaha 01v96.");
+            this.refreshKeyStatus();
         } catch(e) {
             logger.error("Yamaha 01v96: Cannot connect to device: " + e.message);
         }
 
-        this.refreshKeyStatus();
     }
 
     refreshKeyStatus()
@@ -108,6 +113,12 @@ class Yamaha01v96Module extends Module
         this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "bus"}, "getBusLevel");
         this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "in_group"}, "getInGroupMasterLevel");
         this.refreshKeyStatusForAction("yamaha01v96_set_channel_level", { channel_type: "out_group"}, "getOutGroupMasterLevel");
+
+        this.refreshKeyStatusForAction("yamaha01v96_set_solo", { channel_type: "channel"}, "getChannelSolo");
+        this.refreshKeyStatusForAction("yamaha01v96_set_solo", { channel_type: "aux"}, "getAuxOutSolo");
+        this.refreshKeyStatusForAction("yamaha01v96_set_solo", { channel_type: "bus"}, "getBusOutSolo");
+        this.refreshKeyStatusForAction("yamaha01v96_set_solo", { channel_type: "in_group"}, "getInGroupSolo");
+        this.refreshKeyStatusForAction("yamaha01v96_set_solo", { channel_type: "out_group"}, "getOutGroupSolo");
     }
 
     refreshKeyStatusForAction(action, filters, call)
@@ -125,7 +136,7 @@ class Yamaha01v96Module extends Module
             }
 
             if (keyValid) {
-                method.call(this.mixer, key.action.channel);
+                method.call(this.mixer, parseInt(key.action.channel));
             }
         }
     }
@@ -136,14 +147,14 @@ class Yamaha01v96Module extends Module
     {
     }
 
-    onChannelOn(event)
+    onChannelOn(type, event)
     {
         let oldStatus = null;
         let keyValue = null;
         let keys = this.manager.sceneManager.getKeysByAction("yamaha01v96_set_channel_on");
         
         for(let key of keys) {
-            if (key.action.channel == event.channel) {
+            if (key.action.channel_type == type && key.action.channel == event.channel) {
                 oldStatus = key.status;
 
                 // Handle the reversed value situation
@@ -160,10 +171,16 @@ class Yamaha01v96Module extends Module
     onSoloOn(type, event)
     {
         let keys = this.manager.sceneManager.getKeysByAction("yamaha01v96_set_solo");
+        let oldStatus = null;
         
         for(let key of keys) {
             if (key.action.channel == event.channel && key.action.channel_type == type) {
+                oldStatus = key.status;
                 key.status = event.value ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+
+                if(oldStatus != key.status) {
+                    this.manager.sceneManager.renderKey(key);
+                }
             }
         }
     }
@@ -262,16 +279,15 @@ class Yamaha01v96Module extends Module
 
                 perform: function(key) {
                     let channelNo = parseInt(key.action.channel);
+                    let volumePercent = (key.value * 100) / 127;
 
                     switch (key.action.channel_type) {
-                        case 'channel': this.mixer.setChannelOn(channelNo, statusToSend); break;
-                        case 'aux': this.mixer.setAuxOn(channelNo, statusToSend); break;
-                        case 'bus': this.mixer.setBusOn(channelNo, statusToSend); break;
-                        case 'in_group': this.mixer.setInGroupMasterOn(channelNo, statusToSend); break;
-                        case 'out_group': this.mixer.setOutGroupMasterOn(channelNo, statusToSend); break;
+                        case 'channel': this.mixer.setChannelLevel(channelNo, volumePercent); break;
+                        case 'aux': this.mixer.setAuxLevel(channelNo, volumePercent); break;
+                        case 'bus': this.mixer.setBusLevel(channelNo, volumePercent); break;
+                        case 'in_group': this.mixer.setInGroupMasterLevel(channelNo, volumePercent); break;
+                        case 'out_group': this.mixer.setOutGroupMasterLevel(channelNo, volumePercent); break;
                     }
-
-                    this.mixer.setChannelLevel(key.action.channel, (key.value * 100) / 127);
                 }
             },
 
@@ -327,6 +343,14 @@ class Yamaha01v96Module extends Module
 
                     // Set status constant from it's boolean status
                     key.status = status ? Key.STATUS_ACTIVE : Key.STATUS_INACTIVE;
+                }
+            },
+
+            yamaha01v96_clear_solo: {
+                label: "Yamaha 01v96: Clear solo",
+                parameters: {},
+                perform: function(key) {
+                    this.mixer.clearSolo();
                 }
             },
 

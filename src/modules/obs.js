@@ -515,6 +515,15 @@ class OBSModule extends Module
         return this.sceneList[this.currentPreview];
     }
 
+    getCurrentScene(index = false)
+    {
+        if(index) {
+            return this.currentScene;
+        }
+
+        return this.sceneList[this.currentScene];
+    }
+
     //// OBS ACTIONS ////
     
     toggleSourceVisibility(scene, source, force = null)
