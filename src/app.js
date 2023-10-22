@@ -170,7 +170,7 @@ var routes = {
     virtualdevice: new VirtualDeviceAPI(dm, sm),
     scripts: new ScriptsAPI(scrm),
     modules: new ModulesAPI(modm),
-    system: new SystemAPI(sm, dm, conf)
+    system: new SystemAPI(sm, dm, scrm, conf)
 };
 
 app.use('/scenes', routes.scenes.router());

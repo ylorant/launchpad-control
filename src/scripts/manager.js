@@ -135,6 +135,16 @@ class ScriptsManager
             this.sandbox[i] = mergeObject[i];
         }
     }
+
+    /**
+     * Exports the manager as a serializable object for configuration output.
+     */
+    export() {
+        return {
+            list: this.scripts,
+            hooks: this.hooks
+        };
+    }
 }
 
 module.exports = ScriptsManager;

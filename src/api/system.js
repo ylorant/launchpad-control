@@ -4,10 +4,11 @@ var router = express.Router();
 
 class SystemAPI
 {
-    constructor(sceneManager, deviceManager, config)
+    constructor(sceneManager, deviceManager, scriptsManager, config)
     {
         this.sceneManager = sceneManager;
         this.deviceManager = deviceManager;
+        this.scriptsManager = scriptsManager;
         this.config = config;
     }
 
@@ -31,6 +32,7 @@ class SystemAPI
 
         this.config.set("scenes", this.sceneManager.export());
         this.config.set("devices", this.deviceManager.export());
+        this.config.set("scripts", this.scriptsManager.export());
         this.config.save(req.body.path);
         res.json(true);
 
