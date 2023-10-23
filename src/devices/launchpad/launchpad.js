@@ -38,44 +38,47 @@ class Launchpad extends Device
 
     open()
     {
-        if(this.config.inputPort == null || this.config.outputPort == null) {
+        let inputPort = this.config.inputPort;
+        let outputPort = this.config.outputPort;
+
+        if(inputPort == null || outputPort == null) {
             logger.info("Input or output port not specified, trying to autodiscover them.");
             var devices = this.getDevices();
 
             // Try to guess the input port if needed
-            if(this.config.inputPort == null) {
+            if(inputPort == null) {
                 for(var i in devices.input) {
                     if(devices.input[i].match(/Launchpad/)) {
                         logger.info("Guessed input port " + i + ": " + devices.input[i]);
-                        this.config.inputPort = parseInt(i);
+                        inputPort = parseInt(i);
                         break;
                     }
                 }
             }
 
             // Try to guess the output port if needed
-            if(this.config.outputPort == null) {
+            if(outputPort == null) {
                 for(var i in devices.output) {
                     if(devices.output[i].match(/Launchpad/)) {
                         logger.info("Guessed output port " + i + ": " + devices.output[i]);
-                        this.config.outputPort = parseInt(i);
+                        outputPort = parseInt(i);
                         break;
                     }
                 }
             }
 
             // If one port is still missing, we 
-            if(this.config.inputPort == null || this.config.outputPort == null) {
+            if(inputPort == null || outputPort == null) {
                 logger.error("Could not discover a Launchpad.");
                 this.emit("ready");
                 return false;
             }
         }
 
-        logger.info("Connecting to Launchpad on ports " + this.config.inputPort + ":" + this.config.outputPort);
+        logger.info("Connecting to Launchpad on ports " + inputPort + ":" + outputPort);
 
         try {
-            this.pad = new launchpadder(this.config.inputPort, this.config.outputPort);
+            this.pad = new launchpadder(inputPort, outputPort);
         } catch(e) {
             logger.error("Cannot connect to the Launchpad.");
             return false;
