@@ -63,6 +63,7 @@ class NanoKontrolStudio extends Device
             this.device.connect(this.config.inputPort, this.config.outputPort);
         } catch (e) {
             logger.error("Cannot connect to NanoKontrol Studio: " + e.message);
+            this.emit("open_error", this);
         }
     }
 

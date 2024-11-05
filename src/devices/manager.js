@@ -17,7 +17,8 @@ class DeviceManager extends EventEmitter
     resetProperties()
     {
         this.devices = [];
-        this.initializedCount = 0;   
+        this.initializedCount = 0;  
+        this.initializeErrorCount = 0; 
     }
 
     init(deviceConfig)
@@ -57,6 +58,7 @@ class DeviceManager extends EventEmitter
 
         let device = new deviceTypeList[config.type]();
         
+        device.on('open_error', this.onDeviceOpenError.bind(this, device));
         device.on("ready", this.onDeviceReady.bind(this, device));
         device.on("press", this.onDevicePress.bind(this, device));
         device.on("release", this.onDeviceRelease.bind(this, device));
@@ -114,14 +116,24 @@ class DeviceManager extends EventEmitter
         }
     }
 
-    onDeviceReady()
+    checkAllInitialized()
     {
-        this.initializedCount++;
-
-        if(this.initializedCount == this.devices.length) {
+        if((this.initializedCount + this.initializeErrorCount) == this.devices.length) {
             logger.info("All devices ready.");
             this.emit("ready");
         }
+    }
+
+    onDeviceOpenError()
+    {
+        this.initializeErrorCount++;
+        this.checkAllInitialized();
+    }
+
+    onDeviceReady()
+    {
+        this.initializedCount++;
+        this.checkAllInitialized();
     }
 
     onDevicePress(device, position)

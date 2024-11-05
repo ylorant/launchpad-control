@@ -113,7 +113,7 @@ class NanoKontrol extends Device
     onConnectionError(err)
     {
         logger.error("Cannot connect to NanoKontrol/2: " + err);
-        this.emit("ready");
+        this.emit("open_error", this);
     }
 
     /**

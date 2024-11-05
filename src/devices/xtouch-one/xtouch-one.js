@@ -54,6 +54,7 @@ class XTouchOneDevice extends Device
         } catch(e) {
             this.connected = false;
             logger.error("Cannot connect to XTouch One: " + e.message);
+            this.emit("open_error", this);
         }
 
         this.emit("ready");

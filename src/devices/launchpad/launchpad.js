@@ -70,7 +70,7 @@ class Launchpad extends Device
             // If one port is still missing, we 
             if(inputPort == null || outputPort == null) {
                 logger.error("Could not discover a Launchpad.");
-                this.emit("ready");
+                this.emit("open_error", this);
                 return false;
             }
         }
@@ -81,6 +81,7 @@ class Launchpad extends Device
             this.pad = new launchpadder(inputPort, outputPort);
         } catch(e) {
             logger.error("Cannot connect to the Launchpad.");
+            this.emit("open_error", this);
             return false;
         }
 
