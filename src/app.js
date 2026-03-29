@@ -205,4 +205,6 @@ app.use(function(err, req, res, next) {
     });
 });
 
+logger.info("Done initializing.");
+
 module.exports = app;
